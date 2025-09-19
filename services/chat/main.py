@@ -47,9 +47,10 @@ async def chat_proxy(request: Request):
     headers = {"Authorization": f"Bearer {OPENROUTER_API_KEY}"}
     body = await request.body()
 
-    print(url)
-    print(headers)
-    print(body)
+    
+    print("******************")
+    print(request.headers)
+    print("******************")
 
     async def stream_generator():
         chunks = ""
@@ -72,7 +73,7 @@ async def chat_proxy(request: Request):
         async with app.state.postgres_session() as db:
             history = History(
                 user_id=request.state.payload.sub,
-                service_name=request.headers.get("X-Service-Name"),
+                service_name=request.headers.get("X-Service-Id"),
                 request=json.dumps(json.loads(body)),
                 response=json.dumps(chunks_as_objects),
                 tokens=chunks_as_objects[-1].get("usage").get("total_tokens"),
@@ -109,7 +110,7 @@ async def chat_proxy(request: Request):
             async with app.state.postgres_session() as db:
                 history = History(
                     user_id=request.state.token.sub,
-                    service_name=request.headers.get("X-Service-Name"),
+                    service_name=request.headers.get("X-Service-Id"),
                     request=json.dumps(json.loads(body)),
                     response=json.dumps(chunks_as_objects),
                     tokens=chunks_as_objects.get("usage").get("total_tokens"),

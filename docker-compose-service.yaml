@@ -13,7 +13,6 @@ services:
       # - template-worker
       - auth
       - chat
-      - conversation
 
   # template:
   #   build:
@@ -61,21 +60,6 @@ services:
       - ./services/auth:/app
       - ./common:/app/common
 
-  conversation:
-    build:
-      context: .
-      dockerfile: docker/python/Dockerfile.dev
-      args:
-        - SERVICE_NAME=conversation
-    env_file:
-      - .env.dev
-    environment:
-      - SERVICE_NAME=conversation
-      - SERVICE_ID=conversation.service
-    volumes:
-      - ./services/conversation:/app
-      - ./common:/app/common
-
   chat:
     build:
       context: .
@@ -89,6 +73,21 @@ services:
       - SERVICE_ID=chat.service
     volumes:
       - ./services/chat:/app
+      - ./common:/app/common
+
+  conversation:
+    build:
+      context: .
+      dockerfile: docker/python/Dockerfile.dev
+      args:
+        - SERVICE_NAME=conversation
+    env_file:
+      - .env.dev
+    environment:
+      - SERVICE_NAME=conversation
+      - SERVICE_ID=conversation.service
+    volumes:
+      - ./services/conversation:/app
       - ./common:/app/common
 
 networks:

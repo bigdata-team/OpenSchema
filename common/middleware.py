@@ -1,7 +1,13 @@
 from starlette.middleware.base import BaseHTTPMiddleware
 from uuid import uuid4
 from fastapi.exceptions import HTTPException
-from common.jwt import get_tokens, verify_access_token, verify_access_token_now
+from common.jwt import (
+    get_tokens,
+    verify_access_token,
+    verify_access_token_now,
+    decode,
+    TokenPayload,
+)
 from fastapi.routing import APIRoute
 from fastapi.responses import JSONResponse
 from functools import wraps
@@ -40,6 +46,30 @@ class TokenMiddleware(BaseHTTPMiddleware):
         return response
 
 
+def identify(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        request = None
+        for arg in args:
+            if isinstance(arg, Request):
+                request = arg
+                break
+        if not request:
+            request = kwargs.get("request")
+
+        if not request or not hasattr(request, "state"):
+            raise HTTPException(status_code=400, detail="Request object not found")
+
+        tokens = get_tokens(request)
+        access_token = tokens.get("cookie_access_token") or tokens.get("bearer_token")
+        try:
+            payload = TokenPayload(**decode(access_token, "auth.service", "service"))
+        except:
+            payload = TokenPayload(sub=None, sid=None, iat=None, exp=None, jti=None)
+        request.state.token = payload
+        return await func(*args, **kwargs)
+
+
 # decorator
 def protected(func):
     @wraps(func)
@@ -62,6 +92,7 @@ def protected(func):
         return await func(*args, **kwargs)
 
     return wrapper
+
 
 def blprotected(func):
     @wraps(func)
