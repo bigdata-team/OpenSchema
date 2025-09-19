@@ -8,39 +8,25 @@ from common.jwt import (
     decode,
     TokenPayload,
 )
-from fastapi.routing import APIRoute
-from fastapi.responses import JSONResponse
 from functools import wraps
-
-
 import os
 from fastapi import Request
 
 
-class XTransactionIdMiddleware(BaseHTTPMiddleware):
+class CorrelationIdMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
-        header = "X-Transaction-Id"
-        txid = request.headers.get(header)
-        if not txid:
-            txid = str(uuid4())
-        request.state.txid = txid
-
+        header = "X-Correlation-Id"
+        crid = request.headers.get(header)
+        if not crid:
+            crid = str(uuid4())
+        request.state.crid = crid
         response = await call_next(request)
-        response.headers[header] = txid
-        return response
-
-
-class XServiceIdMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request, call_next):
-        header = "X-Service-Id"
-        response = await call_next(request)
-        response.headers[header] = os.getenv("SERVICE_ID")
+        response.headers[header] = crid
         return response
 
 
 class TokenMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
-
         request.state.tokens = get_tokens(request)
         response = await call_next(request)
         return response
@@ -65,9 +51,11 @@ def identify(func):
         try:
             payload = TokenPayload(**decode(access_token, "auth.service", "service"))
         except:
-            payload = TokenPayload(sub=None, sid=None, iat=None, exp=None, jti=None)
+            payload = None
         request.state.token = payload
         return await func(*args, **kwargs)
+
+    return wrapper
 
 
 # decorator

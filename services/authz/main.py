@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from common.lifespan import compose, init_schema, kafka, postgres, redis
 from common.models.http import create_response, DataResponseModel
 from common.models.event import create_event
-from common.middleware import TransactionIDMiddleware
+from common.middleware import CorrelationIdMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from sqlalchemy import text
@@ -23,7 +23,7 @@ app = FastAPI(
     root_path="/api/v1/auth",
     lifespan=compose(init_schema(engine), kafka, postgres, redis),
 )
-app.add_middleware(TransactionIDMiddleware)
+app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -38,9 +38,7 @@ async def healthz(request: Request):
     async with app.state.postgres_session() as session:
         await session.execute(text("SELECT 1"))
     await app.state.redis.ping()
-    return create_response(
-        "Ok", "Auth service is healthy.", request.state.txid, 200
-    )
+    return create_response("Ok", "Auth service is healthy.", request.state.crid, 200)
 
 
 @app.post("/register", response_model=TokensModel)
@@ -51,15 +49,11 @@ async def register(request: Request, body: AuthCredentialsModel):
         result = await db.execute(select(User).where(User.email == body.email))
         existing_user = result.scalar_one_or_none()
         if existing_user:
-            return create_response(
-                "Conflict", "Email already exists.", None, 409
-            )
+            return create_response("Conflict", "Email already exists.", None, 409)
 
         while True:
             username = get_random_name() + "_" + str(random.randint(1000, 9999))
-            result = await db.execute(
-                select(User).where(User.username == username)
-            )
+            result = await db.execute(select(User).where(User.username == username))
             if result.scalar_one_or_none() is None:
                 break
 
@@ -81,7 +75,7 @@ async def register(request: Request, body: AuthCredentialsModel):
         await app.state.kafka_producer.send_and_wait(
             "auth.user.registered",
             key=None,
-            value=create_event(payload=user.to_dict(), txid=request.state.txid),
+            value=create_event(payload=user.to_dict(), crid=request.state.crid),
         )
 
     except Exception as e:
@@ -172,9 +166,7 @@ async def refresh(request: Request, tokens=Depends(get_tokens)):
         refresh_token=token, iss="auth.service", aud="service"
     )
 
-    res = create_response(
-        "Ok", "Refreshed tokens successfully.", refreshed_tokens, 200
-    )
+    res = create_response("Ok", "Refreshed tokens successfully.", refreshed_tokens, 200)
 
     res.set_cookie(
         key="access_token",
@@ -204,16 +196,12 @@ async def refresh(request: Request, tokens=Depends(get_tokens)):
 @app.get("/me", response_model=DataResponseModel[MeModel])
 async def get_me(tokens: dict = Depends(get_tokens)):
     token = tokens.get("access_token") or tokens.get("bearer_token") or None
-    payload = await jwt.verify_token(
-        token, issuer="auth.service", audience="service"
-    )
+    payload = await jwt.verify_token(token, issuer="auth.service", audience="service")
 
     async with app.state.postgres_session() as db:
         from sqlalchemy.future import select
 
-        result = await db.execute(
-            select(User).where(User.id == payload.sub)
-        )
+        result = await db.execute(select(User).where(User.id == payload.sub))
         user = result.scalar_one_or_none()
 
     if not user:
@@ -243,20 +231,14 @@ async def change_password(
     tokens: dict = Depends(get_tokens),
 ):
     token = tokens.get("access_token") or tokens.get("bearer_token") or None
-    payload = await jwt.verify_token(
-        token, issuer="auth.service", audience="service"
-    )
+    payload = await jwt.verify_token(token, issuer="auth.service", audience="service")
 
     async with app.state.postgres_session() as db:
         from sqlalchemy.future import select
 
-        result = await db.execute(
-            select(User).where(User.id == payload.sub)
-        )
+        result = await db.execute(select(User).where(User.id == payload.sub))
         user = result.scalar_one_or_none()
-        if not user or not verify_password(
-            body.old_password, user.hashed_password
-        ):
+        if not user or not verify_password(body.old_password, user.hashed_password):
             return create_response(
                 "Not found", "User not found or old password incorrect.", None, 404
             )

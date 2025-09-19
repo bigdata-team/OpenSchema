@@ -20,8 +20,7 @@ app = FastAPI(
     root_path="/api/v1/auth",
     lifespan=compose(init_schema(engine), kafka, postgres, redis),
 )
-app.add_middleware(XTransactionIdMiddleware)
-app.add_middleware(XServiceIdMiddleware)
+app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -36,7 +35,7 @@ async def healthz(request: Request):
     async with app.state.postgres_session() as session:
         await session.execute(text("SELECT 1"))
     await app.state.redis.ping()
-    return create_response("Ok", "Auth service is healthy.", request.state.txid, 200)
+    return create_response("Ok", "Auth service is healthy.", request.state.crid, 200)
 
 
 @app.post("/register", response_model=TokensModel)
@@ -73,7 +72,7 @@ async def register(request: Request, body: AuthCredentialsModel):
         await app.state.kafka_producer.send_and_wait(
             "auth.user.registered",
             key=None,
-            value=create_event(payload=user.to_dict(), txid=request.state.txid),
+            value=create_event(payload=user.to_dict(), crid=request.state.crid),
         )
 
     except Exception as e:
@@ -198,7 +197,9 @@ async def get_me(request: Request):
     async with app.state.postgres_session() as db:
         from sqlalchemy.future import select
 
-        result = await db.execute(select(User).where(User.id == request.state.token.sub))
+        result = await db.execute(
+            select(User).where(User.id == request.state.token.sub)
+        )
         user = result.scalar_one_or_none()
 
     if not user:
@@ -231,7 +232,9 @@ async def change_password(
     async with app.state.postgres_session() as db:
         from sqlalchemy.future import select
 
-        result = await db.execute(select(User).where(User.id == request.state.token.sub))
+        result = await db.execute(
+            select(User).where(User.id == request.state.token.sub)
+        )
         user = result.scalar_one_or_none()
         if not user or not verify_password(body.old_password, user.hashed_password):
             return create_response(
