@@ -1,4 +1,5 @@
 import os
+
 import aioboto3
 
 S3_ENDPOINT = os.getenv("S3_ENDPOINT")

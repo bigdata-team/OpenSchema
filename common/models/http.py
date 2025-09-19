@@ -1,10 +1,10 @@
 from typing import Generic, TypeVar
-from pydantic import BaseModel, Field
+
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 
 from ..utils import Now
-
 
 T = TypeVar("T")
 

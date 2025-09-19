@@ -13,6 +13,8 @@ services:
       # - template-worker
       - auth
       - chat
+      - conversation
+      - emeddings
 
   # template:
   #   build:
@@ -89,6 +91,22 @@ services:
     volumes:
       - ./services/conversation:/app
       - ./common:/app/common
+
+  embeddings:
+    build:
+      context: .
+      dockerfile: docker/python/Dockerfile.dev
+      args:
+        - SERVICE_NAME=embeddings
+    env_file:
+      - .env.dev
+    environment:
+      - SERVICE_NAME=embeddings
+      - SERVICE_ID=embeddings.service
+    volumes:
+      - ./services/embeddings:/app
+      - ./common:/app/common
+
 
 networks:
   shared-net:

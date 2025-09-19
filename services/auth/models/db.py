@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, Integer, Text, String
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
 
 from common.models.db import Base
 
@@ -18,11 +18,6 @@ class User(Base):
 
     is_first_login = Column(Boolean, nullable=False, default=False)
     is_active = Column(Boolean, nullable=False, default=True)
-    change_password_on_next_login = Column(
-        Boolean, nullable=False, default=False
-    )
+    change_password_on_next_login = Column(Boolean, nullable=False, default=False)
     last_login_at = Column(DateTime(timezone=True), nullable=True)
     last_password_change_at = Column(DateTime(timezone=True), nullable=True)
-
-
-

@@ -19,6 +19,7 @@ def init_schema(engine):
     async def lifespan(app):
         await create_schema(engine)
         yield
+
     return lifespan
 
 

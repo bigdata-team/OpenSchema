@@ -2,13 +2,12 @@ import os
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from redis.asyncio import Redis
-from fastapi import HTTPException
+from fastapi import Header, HTTPException, Request
 from jose import jwt
 from pydantic import BaseModel
+from redis.asyncio import Redis
+
 from .connection.redis import get_redis
-from fastapi import Request
-from fastapi import Header, Request
 
 JWT_SECRET = os.getenv("JWT_SECRET")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")

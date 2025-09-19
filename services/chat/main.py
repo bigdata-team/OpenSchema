@@ -1,20 +1,21 @@
-from fastapi import FastAPI, BackgroundTasks
-
-from common.lifespan import compose, init_schema, kafka, postgres
-from common.models.http import create_response, DataResponseModel
-from common.models.event import create_event
-from common.middleware import *
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.requests import Request
-from sqlalchemy import text
-from models.http import *
-from models.db import *
-from common.connection.postgres import engine
-from fastapi.responses import StreamingResponse, Response
-import httpx
 import json
 import os
+
+import httpx
+from fastapi import BackgroundTasks, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.requests import Request
+from fastapi.responses import Response, StreamingResponse
+from models.db import *
+from models.http import *
+from sqlalchemy import text
+
 from common.chat import Handler
+from common.connection.postgres import engine
+from common.lifespan import compose, init_schema, kafka, postgres
+from common.middleware import *
+from common.models.event import create_event
+from common.models.http import DataResponseModel, create_response
 
 OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")

@@ -1,14 +1,14 @@
 from fastapi import FastAPI
-
-from common.lifespan import compose, kafka, postgres, redis, s3, neo4j
-from common.model.http import create_response
-from common.model.event import Envelope
-from common.model.log import Log
-from common.middleware import CorrelationIdMiddleware
-from common.log import create_logger
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from sqlalchemy import text
+
+from common.lifespan import compose, kafka, neo4j, postgres, redis, s3
+from common.log import create_logger
+from common.middleware import CorrelationIdMiddleware
+from common.model.event import Envelope
+from common.model.http import create_response
+from common.model.log import Log
 
 logger = create_logger(name="template")
 

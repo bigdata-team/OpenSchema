@@ -1,20 +1,20 @@
-from fastapi import FastAPI
+import os
+import random
 
-from common.lifespan import compose, init_schema, kafka, postgres, redis
-from common.models.http import create_response, DataResponseModel
-from common.models.event import create_event
-from common.middleware import *
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
-from sqlalchemy import text
-from models.http import *
 from models.db import *
-from common.connection.postgres import engine
-from common.utils import get_random_name, hash_password, verify_password
-from fastapi import Depends
-import random
-import os
+from models.http import *
+from sqlalchemy import text
+
 from common import jwt
+from common.connection.postgres import engine
+from common.lifespan import compose, init_schema, kafka, postgres, redis
+from common.middleware import *
+from common.models.event import create_event
+from common.models.http import DataResponseModel, create_response
+from common.utils import get_random_name, hash_password, verify_password
 
 app = FastAPI(
     root_path="/api/v1/auth",

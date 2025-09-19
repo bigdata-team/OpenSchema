@@ -5,7 +5,7 @@ import httpx
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
-from fastapi.responses import Response, StreamingResponse
+from fastapi.responses import Response, StreamingResponse, JSONResponse
 from models.db import *
 from models.http import *
 from sqlalchemy import text
@@ -17,11 +17,11 @@ from common.middleware import *
 from common.models.event import create_event
 from common.models.http import DataResponseModel, create_response
 
-SERVICE_NAME = os.getenv("SERVICE_NAME")
-SERVICE_ID = os.getenv("SERVICE_ID")
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 app = FastAPI(
-    root_path="/api/v1/conversation",
+    root_path="/api/v1/embeddings",
     lifespan=compose(init_schema(engine), kafka, postgres),
 )
 app.add_middleware(CorrelationIdMiddleware)
@@ -39,28 +39,23 @@ async def healthz(request: Request):
     async with app.state.postgres_session() as session:
         await session.execute(text("SELECT 1"))
     return create_response(
-        "Ok", "Conversation service is healthy.", request.state.crid, 200
+        "Ok", "Embedding service is healthy.", request.state.crid, 200
     )
 
 
-class MyHander(Handler):
-    def __init__(self, url, headers, body, app, request, tasks):
-        super().__init__(url, headers, body, app, request, tasks)
-
-    def stream_parser(self, content):
-        chunks = super().stream_parser(content)
-
-    def nonstream_parser(self, content):
-        content = super().nonstream_parser(content)
-
-
 @app.post("")
-@protected
-async def conversation(request: Request, tasks: BackgroundTasks):
-    url = "http://chat:8000/api/v1/chat/completions"
-    headers = dict(request.headers)
-    headers["X-Service-Id"] = SERVICE_ID
+# @protected
+async def embeddings_proxy(request: Request):
+    url = f"{OPENAI_API_KEY}/embeddings"
+    headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
     body = await request.body()
 
-    handler = MyHander(url, headers, body, app, request, tasks)
-    return await handler.run()
+    async with httpx.AsyncClient(timeout=60) as client:
+        res = await client.post(url, headers=headers, content=body)
+    
+    print("**************")
+    print(res)
+    print("**************")
+
+    return JSONResponse(status_code=res.status_code, content=res.json())
+

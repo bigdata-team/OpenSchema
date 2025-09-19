@@ -1,9 +1,9 @@
 from typing import Generic, TypeVar
-from pydantic import BaseModel, Field
 from uuid import uuid4
 
-from ..utils import Now
+from pydantic import BaseModel, Field
 
+from ..utils import Now
 
 T = TypeVar("T")
 

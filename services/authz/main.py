@@ -1,21 +1,20 @@
-from fastapi import FastAPI
+import os
+import random
 
-from common.lifespan import compose, init_schema, kafka, postgres, redis
-from common.models.http import create_response, DataResponseModel
-from common.models.event import create_event
-from common.middleware import CorrelationIdMiddleware
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
-from sqlalchemy import text
-from models.http import *
 from models.db import *
+from models.http import *
+from sqlalchemy import text
+
 from common.connection.postgres import engine
+from common.jwt import JWTManager, get_tokens
+from common.lifespan import compose, init_schema, kafka, postgres, redis
+from common.middleware import CorrelationIdMiddleware
+from common.models.event import create_event
+from common.models.http import DataResponseModel, create_response
 from common.utils import get_random_name, hash_password, verify_password
-from common.jwt import JWTManager
-from fastapi import Depends
-import random
-import os
-from common.jwt import get_tokens
 
 jwt = JWTManager()
 

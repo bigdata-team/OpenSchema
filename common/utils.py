@@ -1,8 +1,8 @@
 import json
 from datetime import datetime, timezone
 
-from fastapi.encoders import jsonable_encoder
 import bcrypt
+from fastapi.encoders import jsonable_encoder
 
 
 class Now:
@@ -40,10 +40,10 @@ def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
 
 
-
 async def summarize(text: str, max_length: int = 100) -> str:
-    import httpx
     import os
+
+    import httpx
 
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     if not OPENAI_API_KEY:
@@ -59,7 +59,10 @@ async def summarize(text: str, max_length: int = 100) -> str:
             json={
                 "model": "gpt-4o",
                 "messages": [
-                    {"role": "system", "content": "You are a title maker. Summarize the text and create a concise title."},
+                    {
+                        "role": "system",
+                        "content": "You are a title maker. Summarize the text and create a concise title.",
+                    },
                     {
                         "role": "user",
                         "content": f"Summarize the following text in {max_length} characters without punctuation marks.: {text}",

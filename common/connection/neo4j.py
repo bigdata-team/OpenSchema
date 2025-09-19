@@ -1,4 +1,5 @@
 import os
+
 from neo4j import AsyncGraphDatabase
 
 NEO4J_HOST = os.getenv("NEO4J_HOST")

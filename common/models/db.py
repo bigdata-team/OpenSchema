@@ -15,7 +15,9 @@ class Base(_Base):
     id = Column(Text, primary_key=True, default=lambda: str(uuid.uuid4()))
     seq = Column(Integer, primary_key=True, autoincrement=True)
     created_at = Column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
     )
     updated_at = Column(
         DateTime(timezone=True),

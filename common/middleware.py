@@ -1,16 +1,13 @@
-from starlette.middleware.base import BaseHTTPMiddleware
-from uuid import uuid4
-from fastapi.exceptions import HTTPException
-from common.jwt import (
-    get_tokens,
-    verify_access_token,
-    verify_access_token_now,
-    decode,
-    TokenPayload,
-)
-from functools import wraps
 import os
+from functools import wraps
+from uuid import uuid4
+
 from fastapi import Request
+from fastapi.exceptions import HTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
+
+from common.jwt import (TokenPayload, decode, get_tokens, verify_access_token,
+                        verify_access_token_now)
 
 
 class CorrelationIdMiddleware(BaseHTTPMiddleware):
