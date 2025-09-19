@@ -53,7 +53,7 @@ class JWTService:
             audience=audience,
         )
 
-    def verify_token(
+    async def verify_token(
         self, token: str, issuer: str | None = None, audience: str | None = None
     ) -> TokenPayload:
         try:

@@ -57,6 +57,20 @@ services:
       - ./services/auth:/app
       - ./common:/app/common
 
+  conversation:
+    build:
+      context: .
+      dockerfile: docker/python/Dockerfile.dev
+      args:
+        - SERVICE=conversation
+    env_file:
+      - .env.dev
+    environment:
+      - SERVICE=conversation
+    volumes:
+      - ./services/conversation:/app
+      - ./common:/app/common
+
   proxy:
     build:
       context: .
