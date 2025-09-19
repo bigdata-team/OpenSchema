@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from common.lifespan import compose, init_schema, kafka, postgres, redis
 from common.models.http import create_response, DataResponseModel
 from common.models.event import create_event
-from common.middleware import *
+from common.middleware import TransactionIDMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from sqlalchemy import text
@@ -11,17 +11,19 @@ from models.http import *
 from models.db import *
 from common.connection.postgres import engine
 from common.utils import get_random_name, hash_password, verify_password
+from common.jwt import JWTManager
 from fastapi import Depends
 import random
 import os
-from common import jwt
+from common.jwt import get_tokens
+
+jwt = JWTManager()
 
 app = FastAPI(
     root_path="/api/v1/auth",
     lifespan=compose(init_schema(engine), kafka, postgres, redis),
 )
-app.add_middleware(XTransactionIdMiddleware)
-app.add_middleware(XServiceIdMiddleware)
+app.add_middleware(TransactionIDMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -36,7 +38,9 @@ async def healthz(request: Request):
     async with app.state.postgres_session() as session:
         await session.execute(text("SELECT 1"))
     await app.state.redis.ping()
-    return create_response("Ok", "Auth service is healthy.", request.state.txid, 200)
+    return create_response(
+        "Ok", "Auth service is healthy.", request.state.txid, 200
+    )
 
 
 @app.post("/register", response_model=TokensModel)
@@ -47,11 +51,15 @@ async def register(request: Request, body: AuthCredentialsModel):
         result = await db.execute(select(User).where(User.email == body.email))
         existing_user = result.scalar_one_or_none()
         if existing_user:
-            return create_response("Conflict", "Email already exists.", None, 409)
+            return create_response(
+                "Conflict", "Email already exists.", None, 409
+            )
 
         while True:
             username = get_random_name() + "_" + str(random.randint(1000, 9999))
-            result = await db.execute(select(User).where(User.username == username))
+            result = await db.execute(
+                select(User).where(User.username == username)
+            )
             if result.scalar_one_or_none() is None:
                 break
 
@@ -87,9 +95,7 @@ async def login(request: Request, body: AuthCredentialsModel):
     from sqlalchemy.future import select
 
     async with app.state.postgres_session() as db:
-        result = await db.execute(
-            select(User).where(User.email == body.email, User.deleted_at == None)
-        )
+        result = await db.execute(select(User).where(User.email == body.email))
         user = result.scalar_one_or_none()
         if user and verify_password(body.password, user.hashed_password):
             from datetime import datetime, timezone
@@ -112,7 +118,7 @@ async def login(request: Request, body: AuthCredentialsModel):
         httponly=True,
         secure=True,
         samesite="None",
-        max_age=jwt.JWT_ACCESS_TOKEN_EXPIRE_SECONDS,
+        max_age=jwt.access_token_ttl,
         path="/",
     )
 
@@ -122,7 +128,7 @@ async def login(request: Request, body: AuthCredentialsModel):
         httponly=True,
         secure=True,
         samesite="None",
-        max_age=jwt.JWT_REFRESH_TOKEN_EXPIRE_SECONDS,
+        max_age=jwt.refresh_token_ttl,
         path="/api/v1/auth/refresh",
     )
 
@@ -130,9 +136,10 @@ async def login(request: Request, body: AuthCredentialsModel):
 
 
 @app.post("/logout", response_model=AccessTokenModel)
-@protected
-async def logout(request: Request):
-    jwt.blacklist(request.state.token.sid)
+async def logout(request: Request, tokens=Depends(get_tokens)):
+    token = tokens.get("access_token") or tokens.get("bearer_token") or None
+    payload = await jwt.verify_token(token, "auth.service", "service")
+    jwt.blacklist(payload.sub)
     res = create_response("Ok", "Logged out successfully.", None, 200)
     res.set_cookie(
         key="access_token",
@@ -160,12 +167,14 @@ async def logout(request: Request):
 
 @app.post("/refresh", response_model=AccessTokenModel)
 async def refresh(request: Request, tokens=Depends(get_tokens)):
-    refresh_token = (
-        tokens.get("cookie_refresh_token") or tokens.get("bearer_token") or None
+    token = tokens.get("refresh_token") or tokens.get("bearer_token") or None
+    refreshed_tokens = await jwt.rotate_tokens(
+        refresh_token=token, iss="auth.service", aud="service"
     )
-    refreshed_tokens = await jwt.rotate_tokens(refresh_token=refresh_token)
 
-    res = create_response("Ok", "Refreshed tokens successfully.", refreshed_tokens, 200)
+    res = create_response(
+        "Ok", "Refreshed tokens successfully.", refreshed_tokens, 200
+    )
 
     res.set_cookie(
         key="access_token",
@@ -174,7 +183,7 @@ async def refresh(request: Request, tokens=Depends(get_tokens)):
         # TODO: https
         secure=True,
         samesite="None",
-        max_age=jwt.JWT_ACCESS_TOKEN_EXPIRE_SECONDS,
+        max_age=jwt.access_token_ttl,
         path="/",
     )
 
@@ -185,7 +194,7 @@ async def refresh(request: Request, tokens=Depends(get_tokens)):
         # TODO: https
         secure=True,
         samesite="None",
-        max_age=jwt.JWT_REFRESH_TOKEN_EXPIRE_SECONDS,
+        max_age=jwt.refresh_token_ttl,
         path="/api/v1/auth/refresh",
     )
 
@@ -193,12 +202,18 @@ async def refresh(request: Request, tokens=Depends(get_tokens)):
 
 
 @app.get("/me", response_model=DataResponseModel[MeModel])
-@blprotected
-async def get_me(request: Request):
+async def get_me(tokens: dict = Depends(get_tokens)):
+    token = tokens.get("access_token") or tokens.get("bearer_token") or None
+    payload = await jwt.verify_token(
+        token, issuer="auth.service", audience="service"
+    )
+
     async with app.state.postgres_session() as db:
         from sqlalchemy.future import select
 
-        result = await db.execute(select(User).where(User.id == request.state.token.sub))
+        result = await db.execute(
+            select(User).where(User.id == payload.sub)
+        )
         user = result.scalar_one_or_none()
 
     if not user:
@@ -223,17 +238,25 @@ async def get_me(request: Request):
 
 
 @app.post("/me/change-password")
-@blprotected
 async def change_password(
-    request: Request,
     body: ChangePasswordModel,
+    tokens: dict = Depends(get_tokens),
 ):
+    token = tokens.get("access_token") or tokens.get("bearer_token") or None
+    payload = await jwt.verify_token(
+        token, issuer="auth.service", audience="service"
+    )
+
     async with app.state.postgres_session() as db:
         from sqlalchemy.future import select
 
-        result = await db.execute(select(User).where(User.id == request.state.token.sub))
+        result = await db.execute(
+            select(User).where(User.id == payload.sub)
+        )
         user = result.scalar_one_or_none()
-        if not user or not verify_password(body.old_password, user.hashed_password):
+        if not user or not verify_password(
+            body.old_password, user.hashed_password
+        ):
             return create_response(
                 "Not found", "User not found or old password incorrect.", None, 404
             )

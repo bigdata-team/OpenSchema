@@ -10,12 +10,15 @@ from sqlalchemy import text
 from models.http import *
 from models.db import *
 from common.connection.postgres import engine
+from common.jwt import JWTService
 from fastapi import Depends
 from fastapi.responses import StreamingResponse, Response
 from common.jwt import get_tokens
 import httpx
 import json
 import os
+
+jwt = JWTService()
 
 app = FastAPI(
     root_path="/api/v1/proxy",

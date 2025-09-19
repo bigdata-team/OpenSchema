@@ -40,12 +40,20 @@ services:
     image: neo4j
     environment:
       NEO4J_AUTH: ${NEO4J_USER}/${NEO4J_PASSWORD}
+      NEO4J_PLUGINS: '["apoc","genai"]'
+      NEO4J_dbms_security_procedures_allowlist: "apoc.*,gds.*,genai.*"
+      NEO4J_dbms_security_procedures_unrestricted: "jwt.security.*,apoc.*,genai.*"
+      NEO4J_apoc_export_file_enabled: "true"
+      NEO4J_apoc_import_file_enabled: "true"
+      NEO4J_server_directories_import: "/var/lib/neo4j/import"
+      NEO4J_initial_dbms_default__database: ${NEO4J_DATABASE}
     ports:
       - 7474:7474
       - 7687:7687
     volumes:
       - /data
       - /logs
+      - /var/lib/neo4j/import
 
 networks:
   shared-net:

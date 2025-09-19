@@ -3,17 +3,14 @@ from fastapi import FastAPI
 from common.lifespan import compose, init_schema, kafka, postgres
 from common.models.http import create_response, DataResponseModel
 from common.models.event import create_event
-from common.middleware import TransactionIDMiddleware
+from common.middleware import *
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from sqlalchemy import text
 from models.http import *
 from models.db import *
 from common.connection.postgres import engine
-from common.jwt import JWTService
-from fastapi import Depends
 from fastapi.responses import StreamingResponse, Response
-from common.jwt import get_tokens
 import httpx
 import json
 import os
@@ -21,13 +18,12 @@ import os
 OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-jwt = JWTService()
-
 app = FastAPI(
     root_path="/api/v1/chat",
     lifespan=compose(init_schema(engine), kafka, postgres),
 )
-app.add_middleware(TransactionIDMiddleware)
+app.add_middleware(XTransactionIdMiddleware)
+app.add_middleware(XServiceIdMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -43,16 +39,17 @@ async def healthz(request: Request):
         await session.execute(text("SELECT 1"))
     return create_response("Ok", "Proxy service is healthy.", request.state.txid, 200)
 
-
 @app.post("/completions")
-async def chat_proxy(request: Request, tokens=Depends(get_tokens)):
-    token = tokens.get("access_token") or tokens.get("bearer_token") or None
-    payload = await jwt.verify_token(token, "auth.service", "service")
-
+@protected
+async def chat_proxy(request: Request):
     url = f"{OPENROUTER_BASE_URL}/chat/completions"
     method = "POST"
     headers = {"Authorization": f"Bearer {OPENROUTER_API_KEY}"}
     body = await request.body()
+
+    print(url)
+    print(headers)
+    print(body)
 
     async def stream_generator():
         chunks = ""
@@ -62,7 +59,6 @@ async def chat_proxy(request: Request, tokens=Depends(get_tokens)):
                     chunks += b.decode("utf-8")
                     yield b
 
-        print(chunks)
         chunks = [
             c.removeprefix("data: ").strip()
             for c in chunks.split("\n\n")
@@ -75,7 +71,7 @@ async def chat_proxy(request: Request, tokens=Depends(get_tokens)):
 
         async with app.state.postgres_session() as db:
             history = History(
-                user_id=payload.sub,
+                user_id=request.state.payload.sub,
                 service_name=request.headers.get("X-Service-Name"),
                 request=json.dumps(json.loads(body)),
                 response=json.dumps(chunks_as_objects),
@@ -112,7 +108,7 @@ async def chat_proxy(request: Request, tokens=Depends(get_tokens)):
 
             async with app.state.postgres_session() as db:
                 history = History(
-                    user_id=payload.sub,
+                    user_id=request.state.token.sub,
                     service_name=request.headers.get("X-Service-Name"),
                     request=json.dumps(json.loads(body)),
                     response=json.dumps(chunks_as_objects),

@@ -27,8 +27,8 @@ class Base(_Base):
 
     @declared_attr
     def __tablename__(cls):
-        SERVICE = os.getenv("SERVICE", "")
-        return SERVICE + "_" + cls.__name__.lower() + "s"
+        SERVICE_NAME = os.getenv("SERVICE_NAME", "")
+        return SERVICE_NAME + "_" + cls.__name__.lower() + "s"
 
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}

@@ -12,7 +12,8 @@ services:
       # - template
       # - template-worker
       - auth
-      - proxy
+      - chat
+      - conversation
 
   # template:
   #   build:
@@ -23,7 +24,8 @@ services:
   #   env_file:
   #     - .env.dev
   #   environment:
-  #     - DB_SCHEMA=template
+  #     - SERVICE_NAME=auth
+  #     - SERVICE_ID=template.service
   #   volumes:
   #     - ./services/template:/app
   #     - ./common:/app/common
@@ -38,7 +40,8 @@ services:
   #   env_file:
   #     - .env.dev
   #   environment:
-  #     - DB_SCHEMA=template
+  #     - SERVICE_NAME=auth
+  #     - SERVICE_ID=template.service
   #   volumes:
   #     - ./services/template:/app
   #     - ./common:/app/common
@@ -48,11 +51,12 @@ services:
       context: .
       dockerfile: docker/python/Dockerfile.dev
       args:
-        - SERVICE=auth
+        - SERVICE_NAME=auth
     env_file:
       - .env.dev
     environment:
-      - SERVICE=auth
+      - SERVICE_NAME=auth
+      - SERVICE_ID=auth.service
     volumes:
       - ./services/auth:/app
       - ./common:/app/common
@@ -62,27 +66,29 @@ services:
       context: .
       dockerfile: docker/python/Dockerfile.dev
       args:
-        - SERVICE=conversation
+        - SERVICE_NAME=conversation
     env_file:
       - .env.dev
     environment:
-      - SERVICE=conversation
+      - SERVICE_NAME=conversation
+      - SERVICE_ID=conversation.service
     volumes:
       - ./services/conversation:/app
       - ./common:/app/common
 
-  proxy:
+  chat:
     build:
       context: .
       dockerfile: docker/python/Dockerfile.dev
       args:
-        - SERVICE=proxy
+        - SERVICE_NAME=chat
     env_file:
       - .env.dev
     environment:
-      - SERVICE=proxy
+      - SERVICE_NAME=chat
+      - SERVICE_ID=chat.service
     volumes:
-      - ./services/proxy:/app
+      - ./services/chat:/app
       - ./common:/app/common
 
 networks:
