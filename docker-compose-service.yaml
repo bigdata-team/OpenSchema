@@ -14,7 +14,7 @@ services:
       - auth
       - chat
       - conversation
-      - emeddings
+      - embeddings
 
   # template:
   #   build:

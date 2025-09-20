@@ -38,7 +38,7 @@ app.add_middleware(
 async def healthz(request: Request):
     async with app.state.postgres_session() as session:
         await session.execute(text("SELECT 1"))
-    return create_response("Ok", "Proxy service is healthy.", request.state.crid, 200)
+    return create_response("Ok", "Proxy service is healthy.", request.state.cid, 200)
 
 
 class MyHander(Handler):
@@ -61,7 +61,9 @@ class MyHander(Handler):
                 user_id=(
                     self.request.state.token.sub if self.request.state.token else None
                 ),
-                service_name=self.request.headers.get("X-Service-Id"),
+                service_id=self.request.headers.get("X-Service-Id"),
+                model_name=meta.get("model"),
+                url=self.url,
                 request=json.dumps(json.loads(self.body)),
                 response=json.dumps(content),
                 tokens=meta.get("usage").get("total_tokens"),

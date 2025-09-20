@@ -39,7 +39,7 @@ async def healthz(request: Request):
     async with app.state.postgres_session() as session:
         await session.execute(text("SELECT 1"))
     return create_response(
-        "Ok", "Conversation service is healthy.", request.state.crid, 200
+        "Ok", "Conversation service is healthy.", request.state.cid, 200
     )
 
 

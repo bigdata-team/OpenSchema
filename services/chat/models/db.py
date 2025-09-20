@@ -5,7 +5,9 @@ from common.models.db import Base
 
 class History(Base):
     user_id = Column(Text)
-    service_name = Column(Text)
+    service_id = Column(Text)
+    model_name = Column(Text)
+    url = Column(Text)
     request = Column(Text)
     response = Column(Text)
     tokens = Column(Integer)

@@ -30,7 +30,7 @@ app.add_middleware(
 async def healthz(request: Request):
     logger.debug(Log().model_dump_json())
 
-    e = Envelope(event="template.healthz", crid=request.state.crid)
+    e = Envelope(event="template.healthz", cid=request.state.cid)
     await app.state.kafka_producer.send_and_wait(
         topic=e.event, value=e.model_dump_json().encode()
     )
@@ -45,4 +45,4 @@ async def healthz(request: Request):
     async with app.state.neo4j.session() as session:
         await session.run("RETURN 1")
 
-    return create_response("ok", request.state.crid)
+    return create_response("ok", request.state.cid)

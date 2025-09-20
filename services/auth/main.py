@@ -35,7 +35,7 @@ async def healthz(request: Request):
     async with app.state.postgres_session() as session:
         await session.execute(text("SELECT 1"))
     await app.state.redis.ping()
-    return create_response("Ok", "Auth service is healthy.", request.state.crid, 200)
+    return create_response("Ok", "Auth service is healthy.", request.state.cid, 200)
 
 
 @app.post("/register", response_model=TokensModel)
@@ -72,7 +72,7 @@ async def register(request: Request, body: AuthCredentialsModel):
         await app.state.kafka_producer.send_and_wait(
             "auth.user.registered",
             key=None,
-            value=create_event(payload=user.to_dict(), crid=request.state.crid),
+            value=create_event(payload=user.to_dict(), cid=request.state.cid),
         )
 
     except Exception as e:

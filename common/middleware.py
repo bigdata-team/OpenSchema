@@ -13,12 +13,12 @@ from common.jwt import (TokenPayload, decode, get_tokens, verify_access_token,
 class CorrelationIdMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         header = "X-Correlation-Id"
-        crid = request.headers.get(header)
-        if not crid:
-            crid = str(uuid4())
-        request.state.crid = crid
+        cid = request.headers.get(header)
+        if not cid:
+            cid = str(uuid4())
+        request.state.cid = cid
         response = await call_next(request)
-        response.headers[header] = crid
+        response.headers[header] = cid
         return response
 
 
