@@ -64,7 +64,7 @@ class MyHander(Handler):
                 service_id=self.request.headers.get("X-Service-Id"),
                 model_name=meta.get("model"),
                 url=self.url,
-                request=json.dumps(json.loads(self.body)),
+                request=json.dumps(self.body),
                 response=json.dumps(content),
                 tokens=meta.get("usage").get("total_tokens"),
             )
@@ -77,7 +77,7 @@ class MyHander(Handler):
 async def chat_proxy(request: Request, tasks: BackgroundTasks):
     url = f"{OPENROUTER_BASE_URL}/chat/completions"
     headers = {"Authorization": f"Bearer {OPENROUTER_API_KEY}"}
-    body = await request.body()
+    body = await request.json()
 
     handler = MyHander(url, headers, body, app, request, tasks)
     return await handler.run()

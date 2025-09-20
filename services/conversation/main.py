@@ -60,7 +60,7 @@ async def conversation(request: Request, tasks: BackgroundTasks):
     url = "http://chat:8000/api/v1/chat/completions"
     headers = dict(request.headers)
     headers["X-Service-Id"] = SERVICE_ID
-    body = await request.body()
+    body = await request.json()
 
     handler = MyHander(url, headers, body, app, request, tasks)
     return await handler.run()
