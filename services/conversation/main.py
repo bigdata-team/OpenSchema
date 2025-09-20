@@ -7,7 +7,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from fastapi.responses import Response, StreamingResponse
 from models.db import *
-from models.http import *
 from sqlalchemy import text
 
 from common.chat import Handler
@@ -38,9 +37,7 @@ app.add_middleware(
 async def healthz(request: Request):
     async with app.state.postgres_session() as session:
         await session.execute(text("SELECT 1"))
-    return create_response(
-        "Ok", "Conversation service is healthy.", request.state.cid, 200
-    )
+    return create_response("Ok", "Conversation service is healthy.", None, 200)
 
 
 class MyHander(Handler):

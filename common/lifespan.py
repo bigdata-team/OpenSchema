@@ -63,13 +63,9 @@ async def redis(app):
 async def s3(app):
     from .connection.s3 import get_s3
 
-    session = get_s3()
-    s3_client = await session.__aenter__()
-    app.state.s3 = s3_client
-    try:
+    async with get_s3() as s3:
+        app.state.s3 = s3
         yield
-    finally:
-        await s3_client.__aexit__(None, None, None)
 
 
 @asynccontextmanager

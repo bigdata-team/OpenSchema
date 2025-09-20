@@ -107,6 +107,20 @@ services:
       - ./services/embeddings:/app
       - ./common:/app/common
 
+  s3-gateway:
+    build:
+      context: .
+      dockerfile: docker/python/Dockerfile.dev
+      args:
+        - SERVICE_NAME=s3-gateway
+    env_file:
+      - .env.dev
+    environment:
+      - SERVICE_NAME=storage
+      - SERVICE_ID=storage.service
+    volumes:
+      - ./services/s3-gateway:/app
+      - ./common:/app/common
 
 networks:
   shared-net:
