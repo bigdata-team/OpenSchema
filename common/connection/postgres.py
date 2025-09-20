@@ -14,5 +14,5 @@ POSTGRES_URL = f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTG
 
 engine = create_async_engine(POSTGRES_URL, pool_pre_ping=True)
 SessionLocal = async_sessionmaker(
-    autocommit=False, autoflush=False, bind=engine, class_=AsyncSession
+    autocommit=False, autoflush=False, bind=engine, class_=AsyncSession, expire_on_commit=False
 )

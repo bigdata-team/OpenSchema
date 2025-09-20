@@ -9,3 +9,4 @@ class Upload(Base):
     file_name = Column(Text)
     file_extension = Column(Text)
     file_path = Column(Text, nullable=False)
+    is_uploaded = Column(Boolean, default=False)

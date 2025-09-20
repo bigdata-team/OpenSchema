@@ -30,9 +30,9 @@ app.add_middleware(
 async def healthz(request: Request):
     logger.debug(Log().model_dump_json())
 
-    e = Envelope(event="template.healthz", cid=request.state.cid)
     await app.state.kafka_producer.send_and_wait(
-        topic=e.event, value=e.model_dump_json().encode()
+        topic="template.healthz",
+        value=Envelope(cid=request.state.cid).model_dump_json().encode(),
     )
 
     async with app.state.postgres_session() as session:

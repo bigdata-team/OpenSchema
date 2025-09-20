@@ -108,6 +108,8 @@ services:
       - ./common:/app/common
 
   s3-gateway:
+    extra_hosts:
+        - "host.docker.internal:host-gateway"
     build:
       context: .
       dockerfile: docker/python/Dockerfile.dev
