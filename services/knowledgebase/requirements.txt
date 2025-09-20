@@ -1,0 +1,12 @@
+fastapi[standard]
+
+sqlalchemy
+asyncpg
+python-jose
+bcrypt
+pydantic
+redis
+aioboto3
+aiokafka
+neo4j
+langchain
