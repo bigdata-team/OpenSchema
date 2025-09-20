@@ -1,4 +1,5 @@
 import json
+from typing import Any, List
 
 import httpx
 from fastapi import BackgroundTasks, FastAPI
@@ -7,6 +8,14 @@ from fastapi.responses import Response, StreamingResponse
 
 
 class Handler:
+    """Thin HTTP proxy handler with clear streaming vs non‑streaming paths.
+
+    Key points:
+    - No nested try/finally ladders; resource lifetimes are obvious.
+    - Uses a single client+response lifecycle per request.
+    - Schedules parsing work via BackgroundTasks after body/stream finishes.
+    """
+
     def __init__(
         self,
         url: str,
@@ -23,8 +32,8 @@ class Handler:
         self.request = request
         self.tasks = tasks
 
-    def stream_parser(self, content: str) -> list[any]:
-        chunks = []
+    def stream_parser(self, content: str) -> List[Any]:
+        chunks: List[Any] = []
         for chunk in content.split("\n\n"):
             if chunk.startswith("data: "):
                 chunk = chunk.removeprefix("data: ").strip()
@@ -32,14 +41,13 @@ class Handler:
                     chunks.append(json.loads(chunk))
         return chunks
 
-    def nonstream_parser(self, content: any) -> any:
+    def nonstream_parser(self, content: Any) -> Any:
         if isinstance(content, (bytes, bytearray)):
             content = content.decode("utf-8")
         return json.loads(content)
 
     async def __call__(self):
         client = httpx.AsyncClient(timeout=600)
-        returned_streaming = False
         req = client.build_request(
             "POST",
             self.url,
@@ -48,59 +56,43 @@ class Handler:
         )
         res = await client.send(req, stream=True)
 
-        try:
-            content_type = res.headers.get("content-type", "")
-            status = res.status_code
+        content_type = res.headers.get("content-type", "")
+        status = res.status_code
 
-            if content_type.startswith("text/event-stream"):
+        if content_type.startswith("text/event-stream"):
 
-                async def stream_generator():
-                    temp = ""
-                    try:
-                        async for b in res.aiter_bytes():
-                            chunk = b.decode("utf-8", errors="ignore")
-                            temp += chunk
-                            yield b
-                    finally:
-                        # Schedule storing after stream completes
-                        self.tasks.add_task(self.stream_parser, content=temp)
-                        try:
-                            await res.aclose()
-                        finally:
-                            await client.aclose()
-
-                returned_streaming = True
-                return StreamingResponse(
-                    stream_generator(),
-                    status_code=status,
-                    media_type="text/event-stream",
-                    headers={
-                        "Cache-Control": "no-cache",
-                        "X-Accel-Buffering": "no",
-                        "Connection": "keep-alive",
-                    },
-                )
-            else:
-                content = await res.aread()
+            async def stream_generator():
+                accumulated_text = ""
                 try:
-                    self.tasks.add_task(self.nonstream_parser, content=content)
-                    return Response(
-                        content=content,
-                        status_code=status,
-                        media_type=content_type,
-                    )
+                    async for b in res.aiter_bytes():
+                        accumulated_text += b.decode("utf-8", errors="ignore")
+                        yield b
                 finally:
+                    self.tasks.add_task(self.stream_parser, content=accumulated_text)
                     await res.aclose()
                     await client.aclose()
-        finally:
-            # If we didn't return a StreamingResponse, ensure cleanup here
-            if not returned_streaming:
-                try:
-                    if not res.is_closed:
-                        await res.aclose()
-                finally:
-                    if not client.is_closed:
-                        await client.aclose()
+
+            return StreamingResponse(
+                stream_generator(),
+                status_code=status,
+                media_type="text/event-stream",
+                headers={
+                    "Cache-Control": "no-cache",
+                    "X-Accel-Buffering": "no",
+                    "Connection": "keep-alive",
+                },
+            )
+
+        content = await res.aread()
+        self.tasks.add_task(self.nonstream_parser, content=content)
+        response = Response(
+            content=content,
+            status_code=status,
+            media_type=content_type or "application/json",
+        )
+        await res.aclose()
+        await client.aclose()
+        return response
 
     async def run(self):
         return await self.__call__()
