@@ -109,7 +109,7 @@ services:
 
   s3-gateway:
     extra_hosts:
-        - "host.docker.internal:host-gateway"
+      - "host.docker.internal:host-gateway"
     build:
       context: .
       dockerfile: docker/python/Dockerfile.dev
@@ -122,6 +122,21 @@ services:
       - SERVICE_ID=storage.service
     volumes:
       - ./services/s3-gateway:/app
+      - ./common:/app/common
+
+  knowledgebase:
+    build:
+      context: .
+      dockerfile: docker/python/Dockerfile.knowledgebase.dev
+      args:
+        - SERVICE_NAME=knowledgebase
+    env_file:
+      - .env.dev
+    environment:
+      - SERVICE_NAME=knowledgebase
+      - SERVICE_ID=knowledgebase.service
+    volumes:
+      - ./services/knowledgebase:/app
       - ./common:/app/common
 
 networks:
