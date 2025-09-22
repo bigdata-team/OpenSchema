@@ -20,7 +20,7 @@ from utils import (
 
 from common.chat import Handler
 from common.connection.postgres import engine
-from common.lifespan import compose, init_schema, kafka, postgres, mongo
+from common.lifespan import compose, init_schema, kafka, postgres, neo4j
 from common.middleware import *
 from common.models.event import create_event
 from common.models.http import DataResponseModel, create_response
@@ -32,7 +32,7 @@ SERVICE_ID = os.getenv("SERVICE_ID")
 
 app = FastAPI(
     root_path="/api/v1/knowledgebase",
-    lifespan=compose(init_schema(engine), kafka, postgres, mongo),
+    lifespan=compose(init_schema(engine), kafka, postgres, neo4j),
 )
 app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(
@@ -46,8 +46,8 @@ app.add_middleware(
 
 @app.get("/healthz")
 async def healthz(request: Request):
-    async with app.state.mongo as db:
-        await db.command("ping")
+    # async with app.state.mongo as db:
+    #     await db.command("ping")
     async with app.state.neo4j.session() as session:
         await session.run("RETURN 1")
     return create_response("Ok", "Knowledge base ingest service is healthy.", None, 200)
