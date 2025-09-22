@@ -30,12 +30,7 @@ class Base(_Base):
     @declared_attr
     def __tablename__(cls):
         SERVICE_NAME = os.getenv("SERVICE_NAME", "")
-        return SERVICE_NAME + "_" + cls.__name__.lower() + "s"
+        return SERVICE_NAME + "_" + cls.__name__.lower()
 
     def to_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
-
-
-async def create_schema(async_engine):
-    async with async_engine.begin() as conn:
-        await conn.run_sync(_Base.metadata.create_all)

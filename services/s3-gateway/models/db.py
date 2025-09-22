@@ -7,6 +7,5 @@ class Upload(Base):
     user_id = Column(Text)
     service_id = Column(Text)
     file_name = Column(Text)
-    file_extension = Column(Text)
     file_path = Column(Text, nullable=False)
     is_uploaded = Column(Boolean, default=False)

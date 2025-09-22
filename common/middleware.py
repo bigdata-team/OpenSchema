@@ -6,8 +6,13 @@ from fastapi import Request
 from fastapi.exceptions import HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from common.jwt import (TokenPayload, decode, get_tokens, verify_access_token,
-                        verify_access_token_now)
+from common.jwt import (
+    TokenPayload,
+    decode,
+    get_tokens,
+    verify_access_token,
+    verify_access_token_now,
+)
 
 
 class CorrelationIdMiddleware(BaseHTTPMiddleware):

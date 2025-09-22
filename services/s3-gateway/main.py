@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 
 import httpx
 from fastapi import BackgroundTasks, FastAPI, File, UploadFile
@@ -11,20 +12,18 @@ from models.http import *
 from sqlalchemy import text
 
 from common.chat import Handler
-from common.connection.postgres import engine
-from common.lifespan import compose, init_schema, kafka, postgres, s3
+from common.lifespan import compose, kafka, postgres, s3
 from common.middleware import *
 from common.models.event import create_event
 from common.models.http import DataResponseModel, create_response
 from common.utils import Now
-from pathlib import Path
 
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "default")
 S3_PRESIGN_EXPIRE_SECONDS = int(os.getenv("S3_PRESIGN_EXPIRE_SECONDS", 900))
 
 app = FastAPI(
     root_path="/api/v1/storage",
-    lifespan=compose(init_schema(engine), kafka, postgres, s3),
+    lifespan=compose(kafka, postgres, s3),
 )
 app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(
@@ -76,7 +75,6 @@ async def upload(request: Request, file: UploadFile = File(...)):
             user_id=(request.state.token.sub if request.state.token else None),
             service_id=service_id,
             file_name=file_name,
-            file_extension=file_extension,
             file_path=file_path,
             is_uploaded=True,
         )
@@ -87,7 +85,7 @@ async def upload(request: Request, file: UploadFile = File(...)):
     return create_response(
         "Ok",
         "File uploaded successfully.",
-        CompletedModel(upload_id=upload_id),
+        UploadIdModel(upload_id=upload_id),
         200,
     )
 
@@ -103,9 +101,7 @@ async def upload_presign(request: Request, body: UploadModel):
     """
     service_id = body.service_id or request.headers.get("X-Service-Id") or "anon"
     file_name = body.file_name
-    file_extension = body.file_extension or Path(file_name).suffix
-    if file_extension and not file_extension.startswith("."):
-        file_extension = "." + file_extension
+    file_extension = Path(file_name).suffix
 
     file_uuid = body.upload_id or str(uuid4())
     now = Now().now
@@ -131,7 +127,6 @@ async def upload_presign(request: Request, body: UploadModel):
             user_id=request.state.token.sub if request.state.token else None,
             service_id=service_id,
             file_name=file_name,
-            file_extension=file_extension,
             file_path=file_path,
         )
         db.add(upload)
@@ -148,7 +143,7 @@ async def upload_presign(request: Request, body: UploadModel):
 
 
 @app.post("/upload/completed")
-async def upload_completed(request: Request, body: CompletedModel):
+async def upload_completed(request: Request, body: UploadIdModel):
     upload_id = body.upload_id
     async with app.state.postgres_session() as db:
         from sqlalchemy.future import select
@@ -169,7 +164,7 @@ async def upload_completed(request: Request, body: CompletedModel):
 
 
 @app.post("/download")
-async def download(request: Request, body: CompletedModel):
+async def download(request: Request, body: UploadIdModel):
     upload_id = body.upload_id
     if not upload_id:
         return create_response("Error", "Missing upload_id.", None, 400)
@@ -185,7 +180,6 @@ async def download(request: Request, body: CompletedModel):
             )
         file_path = upload.file_path
         file_name = upload.file_name
-        file_extension = upload.file_extension
 
     async with app.state.s3 as s3:
         try:
@@ -200,7 +194,7 @@ async def download(request: Request, body: CompletedModel):
 
 
 @app.post("/download/presign")
-async def download_presign(request: Request, body: CompletedModel):
+async def download_presign(request: Request, body: UploadIdModel):
     upload_id = body.upload_id
     if not upload_id:
         return create_response("Error", "Missing upload_id.", None, 400)

@@ -54,11 +54,11 @@ services:
     volumes:
       - ./services/auth:/app
       - ./common:/app/common
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+    #   interval: 5s
+    #   timeout: 3s
+    #   retries: 30
 
   chat:
     build:
@@ -74,11 +74,11 @@ services:
     volumes:
       - ./services/chat:/app
       - ./common:/app/common
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+    #   interval: 5s
+    #   timeout: 3s
+    #   retries: 30
 
   conversation:
     build:
@@ -94,11 +94,11 @@ services:
     volumes:
       - ./services/conversation:/app
       - ./common:/app/common
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+    #   interval: 5s
+    #   timeout: 3s
+    #   retries: 30
 
   embeddings:
     build:
@@ -114,11 +114,11 @@ services:
     volumes:
       - ./services/embeddings:/app
       - ./common:/app/common
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+    #   interval: 5s
+    #   timeout: 3s
+    #   retries: 30
 
   s3-gateway:
     extra_hosts:
@@ -136,11 +136,11 @@ services:
     volumes:
       - ./services/s3-gateway:/app
       - ./common:/app/common
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+    #   interval: 5s
+    #   timeout: 3s
+    #   retries: 30
 
   s3-init-sidecar:
     image: amazon/aws-cli
@@ -169,11 +169,11 @@ services:
     volumes:
       - ./services/knowledgebase:/app
       - ./common:/app/common
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
-      interval: 5s
-      timeout: 3s
-      retries: 30
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+    #   interval: 5s
+    #   timeout: 3s
+    #   retries: 30
 
 networks:
   shared-net:

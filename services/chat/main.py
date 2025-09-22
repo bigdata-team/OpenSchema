@@ -10,8 +10,7 @@ from models.db import *
 from sqlalchemy import text
 
 from common.chat import Handler
-from common.connection.postgres import engine
-from common.lifespan import compose, init_schema, kafka, postgres
+from common.lifespan import compose, kafka, postgres
 from common.middleware import *
 from common.models.event import create_event
 from common.models.http import DataResponseModel, create_response
@@ -21,7 +20,7 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 app = FastAPI(
     root_path="/api/v1/chat",
-    lifespan=compose(init_schema(engine), kafka, postgres),
+    lifespan=compose(kafka, postgres),
 )
 app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(

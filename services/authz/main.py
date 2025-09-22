@@ -8,19 +8,16 @@ from models.db import *
 from models.http import *
 from sqlalchemy import text
 
-from common.connection.postgres import engine
-from common.jwt import JWTManager, get_tokens
-from common.lifespan import compose, init_schema, kafka, postgres, redis
+from common.jwt import get_tokens
+from common.lifespan import compose, kafka, postgres, redis
 from common.middleware import CorrelationIdMiddleware
 from common.models.event import create_event
 from common.models.http import DataResponseModel, create_response
 from common.utils import get_random_name, hash_password, verify_password
 
-jwt = JWTManager()
-
 app = FastAPI(
     root_path="/api/v1/auth",
-    lifespan=compose(init_schema(engine), kafka, postgres, redis),
+    lifespan=compose(kafka, postgres, redis),
 )
 app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(

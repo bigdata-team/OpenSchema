@@ -12,17 +12,6 @@ def compose(*lifespans):
     return combined
 
 
-def init_schema(engine):
-    from .models.db import create_schema as create_schema
-
-    @asynccontextmanager
-    async def lifespan(app):
-        await create_schema(engine)
-        yield
-
-    return lifespan
-
-
 @asynccontextmanager
 async def kafka(app):
     from .connection.kafka import create_kafka_producer
@@ -39,12 +28,42 @@ async def kafka(app):
 @asynccontextmanager
 async def postgres(app):
     from .connection.postgres import SessionLocal, engine
+    from .models.db import _Base
+
+    async def create_schema(engine):
+        async with engine.begin() as conn:
+            await conn.run_sync(_Base.metadata.create_all)
+
+    await create_schema(engine)
 
     app.state.postgres_session = SessionLocal
     try:
         yield
     finally:
         await engine.dispose()
+
+
+@asynccontextmanager
+async def mongo(app):
+    from beanie import init_beanie
+    from motor.motor_asyncio import AsyncIOMotorClient
+
+    from .connection.mongo import MONGO_DB, MONGO_URI, get_mongo
+    from .models.mongo import Base
+
+    async def create_schema():
+        client = AsyncIOMotorClient(MONGO_URI)
+        db = client[MONGO_DB]
+        await init_beanie(database=db, document_models=[Base])
+
+    await create_schema()
+
+    db = await get_mongo()
+    app.state.mongo = db
+    try:
+        yield
+    finally:
+        db.client.close()
 
 
 @asynccontextmanager

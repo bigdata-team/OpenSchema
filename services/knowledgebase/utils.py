@@ -1,9 +1,10 @@
 from io import BytesIO
-from PyPDF2 import PdfReader
-from pdf2image import convert_from_bytes
+
 import pytesseract
 from docx import Document
+from pdf2image import convert_from_bytes
 from pptx import Presentation
+from PyPDF2 import PdfReader
 
 
 def extract_text_from_pdf(file_content: bytes):

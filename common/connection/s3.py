@@ -1,7 +1,7 @@
 import os
 
-from botocore.config import Config
 import aioboto3
+from botocore.config import Config
 
 S3_ENDPOINT = os.getenv("S3_ENDPOINT")
 S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
