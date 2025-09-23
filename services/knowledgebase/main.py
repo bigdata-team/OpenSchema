@@ -11,6 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 from models.mongo import *
+from models.prompt import Reference, Topic
+from openai import OpenAI
 from utils import (
     extract_text_from_docx,
     extract_text_from_pdf,
@@ -23,8 +25,9 @@ from common.lifespan import compose, kafka, mongo, neo4j, postgres
 from common.middleware import *
 from common.models.event import create_event
 from common.models.http import DataResponseModel, create_response
-from common.utils import Now
+from common.utils import stringify
 
+PROXY_CHAT_BASE_URL = os.getenv("PROXY_CHAT_BASE_URL")
 SERVICE_ID = os.getenv("SERVICE_ID")
 MONGO_DB = os.getenv("MONGO_DB")
 
@@ -53,8 +56,28 @@ async def healthz(request: Request):
 
 
 async def preprocess(
-    app, job_id, user_id, file_id, file_name, file_extension, file_content
+    app,
+    request,
+    tasks,
+    job_id,
+    user_id,
+    file_id,
+    file_name,
+    file_extension,
+    file_content,
 ):
+    await app.state.mongo[MONGO_DB].update_one(
+        {"job_id": job_id},
+        {
+            "$set": {
+                "job_status": "running:1/2",
+                "user_id": user_id,
+                "file_name": file_name,
+                "file_extension": file_extension,
+            }
+        },
+    )
+
     if file_extension == ".pdf":
         content_type = "application/pdf"
         extracted_data = extract_text_from_pdf(file_content)
@@ -77,16 +100,50 @@ async def preprocess(
     else:
         raise Exception("Unsupported file type.")
 
+    pages = [PageObject(**page).model_dump() for page in extracted_data]
+    await app.state.mongo[MONGO_DB].update_one(
+        {"job_id": job_id},
+        {
+            "$set": {
+                "job_status": "running:2/2",
+                "user_id": user_id,
+                "file_name": file_name,
+                "file_extension": file_extension,
+                "content_type": content_type,
+                "pages": pages,
+            }
+        },
+    )
+
+    client = OpenAI(base_url=PROXY_CHAT_BASE_URL, api_key=request.state.token_string)
+    completion = client.chat.completions.parse(
+        model="google/gemini-2.5-flash",
+        extra_headers={
+            "X-Service-Id": SERVICE_ID,
+        },
+        messages=[
+            {
+                "role": "system",
+                "content": """
+                You are an expert at structured data extraction. You will be given unstructured text from a document and should convert it into the given structure.
+                Your task is to process text and extract all meaningful entities, their topics, and their content. You are to return an array of objects with the title being the topic name, and the description being the content of the topic. Be as detailed as possible, and ensure that each topic is distinct and non-overlapping. Do not describe any images, only the text content.
+                Output ONLY valid JSON matching the schema provided. Do not include any explanations or extra text.
+                """,
+            },
+            {"role": "user", "content": f"{stringify(pages)}."},
+        ],
+        response_format=Topic,
+    )
+
+    print("**************************")
+    print(completion)
+    print("**************************")
+
     await app.state.mongo[MONGO_DB].update_one(
         {"job_id": job_id},
         {
             "$set": {
                 "job_status": "done",
-                "user_id": user_id,
-                "file_name": file_name,
-                "file_extension": file_extension,
-                "content_type": content_type,
-                "pages": [PageObject(**page).model_dump() for page in extracted_data],
             }
         },
     )
@@ -131,6 +188,8 @@ async def upload(
     tasks.add_task(
         preprocess,
         app=app,
+        request=request,
+        tasks=tasks,
         job_id=job_id,
         user_id=user_id,
         file_id=file_id,

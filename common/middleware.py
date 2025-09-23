@@ -55,6 +55,7 @@ def identify(func):
         except:
             payload = None
         request.state.token = payload
+        request.state.token_string = access_token
         return await func(*args, **kwargs)
 
     return wrapper
