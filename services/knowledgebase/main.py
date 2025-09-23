@@ -135,15 +135,36 @@ async def preprocess(
         response_format=Topic,
     )
 
-    print("**************************")
-    print(completion)
-    print("**************************")
+    await app.state.mongo[MONGO_DB].update_one(
+        {"job_id": job_id},
+        {
+            "$set": {
+                "job_status": "topics created",
+            }
+        },
+    )
+
+    # data = json.loads(completion.choices[0].message.content)
+    # embedding_response = client.embeddings.create()
+    # embedding_text = [
+    #     f"{topic.get("title")}\n{topic.get("description")}" for topic in data
+    # ]
+
+    # data_with_embedding = []
+    # for topic in data:
+    #     text = f"{topic['title']}\n{topic['description']}"
+    #     embedding_response = client.embeddings.create(
+    #         input=text, model="text-embedding-3-small"
+    #     )
+    #     embedding = embedding_response.data[0].embedding
+    #     topic = {**topic, "embedding": embedding}
+    #     data_with_embedding.append(topic)
 
     await app.state.mongo[MONGO_DB].update_one(
         {"job_id": job_id},
         {
             "$set": {
-                "job_status": "done",
+                "job_status": "embedded",
             }
         },
     )

@@ -175,6 +175,22 @@ services:
     #   timeout: 3s
     #   retries: 30
 
+  mcp:
+    build:
+      context: .
+      dockerfile: docker/python/Dockerfile.dev
+      args:
+        - SERVICE_NAME=mcp
+    command: ["python", "main.py"]
+    env_file:
+      - .env.dev
+    environment:
+      - SERVICE_NAME=mcp
+      - SERVICE_ID=mcp.service
+    volumes:
+      - ./services/mcp:/app
+      - ./common:/app/common
+
 networks:
   shared-net:
     name: net
