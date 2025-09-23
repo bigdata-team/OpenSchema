@@ -22,5 +22,6 @@ class FileObject(Base):
     file_name: str | None = None
     file_extension: str | None = None
     content_type: str | None = None
+    hash: str | None = None
 
     pages: list[PageObject] | None = None
