@@ -8,8 +8,11 @@ NEO4J_USER = os.getenv("NEO4J_USER")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
 
 
-def get_neo4j():
+def get_aioneo4j(
+    host=NEO4J_HOST, port=NEO4J_PORT, user=NEO4J_USER, password=NEO4J_PASSWORD
+):
+    uri = f"bolt://{host}:{port}"
     return AsyncGraphDatabase.driver(
-        f"bolt://{NEO4J_HOST}:{NEO4J_PORT}",
-        auth=(NEO4J_USER, NEO4J_PASSWORD),
+        uri,
+        auth=(user, password),
     )

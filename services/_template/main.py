@@ -6,9 +6,9 @@ from sqlalchemy import text
 from common.lifespan import compose, kafka, neo4j, postgres, redis, s3
 from common.log import create_logger
 from common.middleware import CorrelationIdMiddleware
-from common.model.event import Envelope
-from common.model.http import create_response
-from common.model.log import Log
+from common.models.event import Envelope
+from common.models.http import create_response
+from common.models.log import Log
 
 logger = create_logger(name="template")
 

@@ -20,5 +20,15 @@ class Topic(BaseModel):
         description="A refined explanation of the topic, primarily based on the provided references."
     )
     references: list[Reference] = Field(
-        description="A list of references that support or relate to the topic."
+        description="A list of references that support or relate to the topic.",
+        min_length=1,
+        max_length=3,
     )
+
+
+class Topics(BaseModel):
+    """
+    The collections of topics.
+    """
+
+    topics: list[Topic] = Field(description="A list of topics.", min_length=1)

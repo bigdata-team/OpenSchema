@@ -40,6 +40,23 @@ services:
   #     - ./services/template:/app
   #     - ./common:/app/common
 
+  celery-worker:
+    build:
+      context: .
+      dockerfile: docker/python/Dockerfile.dev
+      args:
+        - SERVICE_NAME=celery
+    command: >
+      celery -A main worker -l info -Q q_default
+    env_file:
+      - .env.dev
+    environment:
+      - SERVICE_NAME=celery
+      - SERVICE_ID=celery.service
+    volumes:
+      - ./services/celery:/app
+      - ./common:/app/common
+
   auth:
     build:
       context: .

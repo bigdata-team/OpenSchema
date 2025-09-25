@@ -85,7 +85,7 @@ async def upload(request: Request, file: UploadFile = File(...)):
     return create_response(
         "Ok",
         "File uploaded successfully.",
-        UploadIdModel(upload_id=upload_id),
+        upload.to_dict(),
         200,
     )
 

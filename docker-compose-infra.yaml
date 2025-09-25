@@ -85,7 +85,16 @@ services:
       interval: 5s
       timeout: 3s
       retries: 30
-
+  
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - 5672:5672
+      - 15672:15672
+    
 networks:
   shared-net:
     name: net

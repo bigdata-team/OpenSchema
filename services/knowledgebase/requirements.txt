@@ -12,6 +12,7 @@ neo4j
 motor
 beanie
 openai
+celery
 
 PyPDF2
 python-docx

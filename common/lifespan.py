@@ -14,9 +14,9 @@ def compose(*lifespans):
 
 @asynccontextmanager
 async def kafka(app):
-    from .connection.kafka import create_kafka_producer
+    from .connection.kafka import create_aiokafka_producer
 
-    producer = create_kafka_producer()
+    producer = create_aiokafka_producer()
     await producer.start()
     app.state.kafka_producer = producer
     try:
@@ -48,7 +48,7 @@ async def mongo(app):
     from beanie import init_beanie
     from motor.motor_asyncio import AsyncIOMotorClient
 
-    from .connection.mongo import MONGO_DB, MONGO_URI, get_mongo
+    from .connection.mongo import MONGO_DB, MONGO_URI, get_aiomongo
     from .models.mongo import Base
 
     async def create_schema():
@@ -58,7 +58,7 @@ async def mongo(app):
 
     await create_schema()
 
-    db = await get_mongo()
+    db = await get_aiomongo()
     app.state.mongo = db
     try:
         yield
@@ -68,9 +68,9 @@ async def mongo(app):
 
 @asynccontextmanager
 async def redis(app):
-    from .connection.redis import get_redis
+    from .connection.redis import get_aioredis
 
-    redis_client = await get_redis()
+    redis_client = await get_aioredis()
     app.state.redis = redis_client
     try:
         yield
@@ -80,18 +80,18 @@ async def redis(app):
 
 @asynccontextmanager
 async def s3(app):
-    from .connection.s3 import get_s3
+    from .connection.s3 import get_aios3
 
-    async with get_s3() as s3:
+    async with get_aios3() as s3:
         app.state.s3 = s3
         yield
 
 
 @asynccontextmanager
 async def neo4j(app):
-    from .connection.neo4j import get_neo4j
+    from .connection.neo4j import get_aioneo4j
 
-    driver = get_neo4j()
+    driver = get_aioneo4j()
     app.state.neo4j = driver
     try:
         yield

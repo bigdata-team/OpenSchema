@@ -1,18 +1,14 @@
-import io
 import json
 import os
-from io import BytesIO
 from pathlib import Path
 
 import httpx
-from docx import Document
 from fastapi import BackgroundTasks, FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
-from fastapi.responses import JSONResponse
 from models.mongo import *
-from models.prompt import Reference, Topic
-from openai import OpenAI
+from models.prompt import Topics
+from openai import AsyncOpenAI
 from utils import (
     extract_text_from_docx,
     extract_text_from_pdf,
@@ -20,16 +16,24 @@ from utils import (
     extract_text_from_txt,
 )
 
-from common.chat import Handler
+from models.http import *
 from common.lifespan import compose, kafka, mongo, neo4j, postgres
 from common.middleware import *
-from common.models.event import create_event
 from common.models.http import DataResponseModel, create_response
 from common.utils import stringify
 
-PROXY_CHAT_BASE_URL = os.getenv("PROXY_CHAT_BASE_URL")
+from celery import chain, signature
+from common.connection.celery import get_client
+from common.jobs import preprocess
+
 SERVICE_ID = os.getenv("SERVICE_ID")
+SERVICE_NAME = os.getenv("SERVICE_NAME")
+
+PROXY_CHAT_BASE_URL = os.getenv("PROXY_CHAT_BASE_URL")
+PROXY_EMBEDDINGS_BASE_URL = os.getenv("PROXY_EMBEDDINGS_BASE_URL")
+
 MONGO_DB = os.getenv("MONGO_DB")
+VECTOR_DIMENSIONS = os.getenv("VECTOR_DIMENSIONS")
 
 
 app = FastAPI(
@@ -115,24 +119,27 @@ async def preprocess(
         },
     )
 
-    client = OpenAI(base_url=PROXY_CHAT_BASE_URL, api_key=request.state.token_string)
-    completion = client.chat.completions.parse(
-        model="google/gemini-2.5-flash",
+    client = AsyncOpenAI(
+        base_url=PROXY_CHAT_BASE_URL, api_key=request.state.token_string
+    )
+    completion = await client.chat.completions.parse(
         extra_headers={
             "X-Service-Id": SERVICE_ID,
         },
+        model="google/gemini-2.5-flash",
         messages=[
             {
                 "role": "system",
                 "content": """
                 You are an expert at structured data extraction. You will be given unstructured text from a document and should convert it into the given structure.
-                Your task is to process text and extract all meaningful entities, their topics, and their content. You are to return an array of objects with the title being the topic name, and the description being the content of the topic. Be as detailed as possible, and ensure that each topic is distinct and non-overlapping. Do not describe any images, only the text content.
-                Output ONLY valid JSON matching the schema provided. Do not include any explanations or extra text.
+                Your task is to process text and extract all meaningful entities, their topics, and their content. Be as detailed as possible, and ensure that each topic is distinct and non-overlapping.
+                Do not describe any images, only the text content.
+                Return only TWO TOPICS IN THE LIST.
                 """,
             },
             {"role": "user", "content": f"{stringify(pages)}."},
         ],
-        response_format=Topic,
+        response_format=Topics,
     )
 
     await app.state.mongo[MONGO_DB].update_one(
@@ -144,21 +151,43 @@ async def preprocess(
         },
     )
 
-    # data = json.loads(completion.choices[0].message.content)
-    # embedding_response = client.embeddings.create()
-    # embedding_text = [
-    #     f"{topic.get("title")}\n{topic.get("description")}" for topic in data
-    # ]
+    data = json.loads(completion.choices[0].message.content)
+    text_batch = [
+        topic.get("title") + "\n\n" + topic.get("explanation")
+        for topic in data.get("topics")
+    ]
 
-    # data_with_embedding = []
-    # for topic in data:
-    #     text = f"{topic['title']}\n{topic['description']}"
-    #     embedding_response = client.embeddings.create(
-    #         input=text, model="text-embedding-3-small"
-    #     )
-    #     embedding = embedding_response.data[0].embedding
-    #     topic = {**topic, "embedding": embedding}
-    #     data_with_embedding.append(topic)
+    async with app.state.neo4j.session() as kg:
+        await kg.query(
+            """
+        CREATE CONSTRAINT unique_topic IF NOT EXISTS
+            FOR (t:Topic) REQUIRE t.topicId IS UNIQUE
+        """
+        )
+
+        await kg.query(
+            """
+        CREATE VECTOR INDEX `vindex` IF NOT EXISTS
+            FOR (t:Topic) ON (t.textEmbedding)
+            OPTIONS { indexConfig: {
+                `vector.dimensions`: $vector_dimensions,
+                `vector.similarity_function`: 'cosine'
+            }}
+        """,
+            params={"vector_dimensions": os.getenv("VECTOR_DIMENSIONS")},
+        )
+
+    client = AsyncOpenAI(
+        base_url=PROXY_EMBEDDINGS_BASE_URL, api_key=request.state.token_string
+    )
+    embedding_response = await client.embeddings.create(
+        extra_headers={
+            "X-Service-Id": SERVICE_ID,
+        },
+        input=text_batch,
+        model="text-embedding-3-small",
+    )
+    embedded_vectors = embedding_response.data[0].embedding
 
     await app.state.mongo[MONGO_DB].update_one(
         {"job_id": job_id},
@@ -234,10 +263,69 @@ async def upload(
     )
 
 
-@app.get("/jobs/{job_id}")
-async def get_job(job_id: str, request: Request):
+@app.get("/upload/jobs/{job_id}")
+async def upload_job(job_id: str, request: Request):
     result = await app.state.mongo[MONGO_DB].find_one(
         {"job_id": job_id}, {"job_status": 1, "_id": 0}
     )
     job_status = result.get("job_status", "unknown") if result else "unknown"
     return create_response("Ok", "Job status.", {"status": job_status}, 200)
+
+
+@app.post("/vindex")
+@identify
+async def vindex(request: Request, body: JobIdModel, tasks: BackgroundTasks):
+    return create_response("Ok")
+
+
+@app.post("/waterfall")
+@identify
+async def waterfall(request: Request, file: UploadFile = File(...)):
+    user_id = request.state.token.sub if request.state.token else None
+
+    if file is None:
+        return create_response("Error", "No file uploaded.", None, 400)
+
+    file_extension = Path(file.filename).suffix
+    if file_extension not in [".pdf", ".docx", ".pptx", ".hwp", ".txt", ".md"]:
+        return create_response(
+            "Error",
+            "Unsupported file type. Only PDF, Word, PowerPoint, HWP, TXT, and Markdown files are supported.",
+            None,
+            400,
+        )
+
+    try:
+        file_name = file.filename
+        file_content = await file.read()
+
+        url = "http://s3-gateway:8000/api/v1/storage/upload"
+        headers = {"X-Service-Id": SERVICE_ID}
+        files = {"file": (file_name, file_content, file.content_type)}
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, headers=headers, files=files)
+            response = response.json()
+            file_id = response.get("data").get("id")
+            file_path = response.get("data").get("file_path")
+
+    except Exception as e:
+        return create_response("Error", str(e), None, 500)
+
+    job_id = str(uuid4())
+
+    client = get_client("clientA")
+
+    payload = {"job_id": job_id, "file_id": file_id, "file_path": file_path}
+
+    wf = chain(
+        preprocess.s(payload).set(queue="q_default"),
+    )
+
+    on_err = signature("app.tasks.pipeline.cleanup", immutable=True).set(
+        queue="q_default"
+    )
+
+    result = wf.apply_async(link_error=[on_err], headers={"job_id": job_id})
+    print(result)
+    return result
