@@ -7,5 +7,5 @@ from celery import shared_task
     retry_backoff=2,
     retry_kwargs={"max_retries": 3},
 )
-def preprocess(self, payload: dict) -> dict:
+def process(self, payload: dict) -> dict:
     return payload

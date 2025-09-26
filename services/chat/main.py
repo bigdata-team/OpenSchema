@@ -76,6 +76,5 @@ async def chat_proxy(request: Request, tasks: BackgroundTasks):
     url = f"{OPENROUTER_BASE_URL}/chat/completions"
     headers = {"Authorization": f"Bearer {OPENROUTER_API_KEY}"}
     body = await request.json()
-
     handler = MyHander(url, headers, body, app, request, tasks)
     return await handler.run()

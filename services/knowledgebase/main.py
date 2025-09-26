@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+from uuid import uuid4
 
 import httpx
 from fastapi import BackgroundTasks, FastAPI, File, UploadFile
@@ -24,7 +25,6 @@ from common.utils import stringify
 
 from celery import chain, signature
 from common.connection.celery import get_client
-from common.jobs import preprocess
 
 SERVICE_ID = os.getenv("SERVICE_ID")
 SERVICE_NAME = os.getenv("SERVICE_NAME")
@@ -76,6 +76,7 @@ async def preprocess(
             "$set": {
                 "job_status": "running:1/2",
                 "user_id": user_id,
+                "file_id": file_id,
                 "file_name": file_name,
                 "file_extension": file_extension,
             }
@@ -111,6 +112,7 @@ async def preprocess(
             "$set": {
                 "job_status": "running:2/2",
                 "user_id": user_id,
+                "file_id": file_id,
                 "file_name": file_name,
                 "file_extension": file_extension,
                 "content_type": content_type,
@@ -158,14 +160,14 @@ async def preprocess(
     ]
 
     async with app.state.neo4j.session() as kg:
-        await kg.query(
+        await kg.run(
             """
         CREATE CONSTRAINT unique_topic IF NOT EXISTS
             FOR (t:Topic) REQUIRE t.topicId IS UNIQUE
         """
         )
 
-        await kg.query(
+        await kg.run(
             """
         CREATE VECTOR INDEX `vindex` IF NOT EXISTS
             FOR (t:Topic) ON (t.textEmbedding)
@@ -176,6 +178,8 @@ async def preprocess(
         """,
             params={"vector_dimensions": os.getenv("VECTOR_DIMENSIONS")},
         )
+
+
 
     client = AsyncOpenAI(
         base_url=PROXY_EMBEDDINGS_BASE_URL, api_key=request.state.token_string
@@ -229,8 +233,9 @@ async def upload(
 
         async with httpx.AsyncClient() as client:
             response = await client.post(url, headers=headers, files=files)
+            response.raise_for_status()  # Raise an exception for HTTP error responses
             response = response.json()
-            file_id = response.get("data").get("upload_id")
+            file_id = response.get("data").get("id")
 
     except Exception as e:
         return create_response("Error", str(e), None, 500)
@@ -249,10 +254,11 @@ async def upload(
     )
 
     fileobject = FileObject(
-        id=file_id,
+        file_id=file_id,
         job_id=job_id,
         job_status="queued",
     )
+
     await app.state.mongo[MONGO_DB].insert_one(fileobject.model_dump())
 
     return create_response(
@@ -315,11 +321,15 @@ async def waterfall(request: Request, file: UploadFile = File(...)):
     job_id = str(uuid4())
 
     client = get_client("clientA")
+    print(client)
 
     payload = {"job_id": job_id, "file_id": file_id, "file_path": file_path}
 
+    from common.jobs import process
+
+    # Create a Celery job for processing
     wf = chain(
-        preprocess.s(payload).set(queue="q_default"),
+        process.s(payload).set(queue="q_default"),
     )
 
     on_err = signature("app.tasks.pipeline.cleanup", immutable=True).set(
@@ -327,5 +337,10 @@ async def waterfall(request: Request, file: UploadFile = File(...)):
     )
 
     result = wf.apply_async(link_error=[on_err], headers={"job_id": job_id})
-    print(result)
-    return result
+
+    return create_response(
+        "Success",
+        "Job created successfully.",
+        {"job_id": job_id, "task_id": result.id},
+        200,
+    )
