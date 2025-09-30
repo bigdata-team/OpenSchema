@@ -4,9 +4,11 @@ from pathlib import Path
 from uuid import uuid4
 
 import httpx
+from celery import chain, signature
 from fastapi import BackgroundTasks, FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
+from models.http import *
 from models.mongo import *
 from models.prompt import Topics
 from openai import AsyncOpenAI
@@ -17,14 +19,11 @@ from utils import (
     extract_text_from_txt,
 )
 
-from models.http import *
+from common.connection.celery import get_client
 from common.lifespan import compose, kafka, mongo, neo4j, postgres
 from common.middleware import *
 from common.models.http import DataResponseModel, create_response
-from common.utils import stringify
-
-from celery import chain, signature
-from common.connection.celery import get_client
+from common.util import stringify
 
 SERVICE_ID = os.getenv("SERVICE_ID")
 SERVICE_NAME = os.getenv("SERVICE_NAME")
@@ -178,8 +177,6 @@ async def preprocess(
         """,
             params={"vector_dimensions": os.getenv("VECTOR_DIMENSIONS")},
         )
-
-
 
     client = AsyncOpenAI(
         base_url=PROXY_EMBEDDINGS_BASE_URL, api_key=request.state.token_string

@@ -1,79 +1,22 @@
-import json
 from datetime import datetime, timezone
 
-import bcrypt
-from fastapi.encoders import jsonable_encoder
 
-
-class Now:
-    def __init__(self, tz=timezone.utc):
-        self.now = datetime.now(tz)
-
-    @property
-    def ts(self):
-        return self.now.timestamp()
-
-    @property
-    def iso(self):
-        return self.now.isoformat()
-
-    def __add__(self, other):
-        return self.now + other
-
-    def __sub__(self, other):
-        return self.now - other
-
-
-def stringify(data):
-    data = jsonable_encoder(data)
-    data = json.dumps(data)
-    return data
+def now(tz=timezone.utc):
+    return datetime.now(tz=tz)
 
 
 def hash_password(password: str, cost: int = 12) -> str:
+    import bcrypt
+
     salt = bcrypt.gensalt(rounds=cost)
     hashed = bcrypt.hashpw(password.encode("utf-8"), salt)
     return hashed.decode()
 
 
 def verify_password(password: str, hashed: str) -> bool:
-    return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
+    import bcrypt
 
-
-async def summarize(text: str, max_length: int = 100) -> str:
-    import os
-
-    import httpx
-
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-    if not OPENAI_API_KEY:
-        raise ValueError("OPENAI_API_KEY environment variable not set")
-
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            "https://api.openai.com/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {OPENAI_API_KEY}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": "gpt-4o",
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": "You are a title maker. Summarize the text and create a concise title.",
-                    },
-                    {
-                        "role": "user",
-                        "content": f"Summarize the following text in {max_length} characters without punctuation marks.: {text}",
-                    },
-                ],
-                "max_tokens": max_length,
-            },
-        )
-        response.raise_for_status()
-        data = response.json()
-        return data["choices"][0]["message"]["content"].strip()
+    return bcrypt.checkpw(password.encode(), hashed.encode())
 
 
 def get_random_name(retry=0):

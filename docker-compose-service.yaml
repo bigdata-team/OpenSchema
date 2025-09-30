@@ -9,21 +9,6 @@ services:
       - ./cert.pem:/etc/ssl/certs/cert.pem
       - ./key.pem:/etc/ssl/certs/key.pem
 
-  # template:
-  #   build:
-  #     context: .
-  #     dockerfile: docker/python/Dockerfile.dev
-  #     args:
-  #       - SERVICE=template
-  #   env_file:
-  #     - .env.dev
-  #   environment:
-  #     - SERVICE_NAME=auth
-  #     - SERVICE_ID=template.service
-  #   volumes:
-  #     - ./services/template:/app
-  #     - ./common:/app/common
-
   # template-worker:
   #   build:
   #     context: .
@@ -37,7 +22,7 @@ services:
   #     - SERVICE_NAME=auth
   #     - SERVICE_ID=template.service
   #   volumes:
-  #     - ./services/template:/app
+  #     - ./service/template:/app
   #     - ./common:/app/common
 
   celery-worker:
@@ -54,143 +39,8 @@ services:
       - SERVICE_NAME=celery
       - SERVICE_ID=celery.service
     volumes:
-      - ./services/celery:/app
+      - ./service/celery:/app
       - ./common:/app/common
-
-  auth:
-    build:
-      context: .
-      dockerfile: docker/python/Dockerfile.dev
-      args:
-        - SERVICE_NAME=auth
-    env_file:
-      - .env.dev
-    environment:
-      - SERVICE_NAME=auth
-      - SERVICE_ID=auth.service
-    volumes:
-      - ./services/auth:/app
-      - ./common:/app/common
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
-    #   interval: 5s
-    #   timeout: 3s
-    #   retries: 30
-
-  chat:
-    build:
-      context: .
-      dockerfile: docker/python/Dockerfile.dev
-      args:
-        - SERVICE_NAME=chat
-    env_file:
-      - .env.dev
-    environment:
-      - SERVICE_NAME=chat
-      - SERVICE_ID=chat.service
-    volumes:
-      - ./services/chat:/app
-      - ./common:/app/common
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
-    #   interval: 5s
-    #   timeout: 3s
-    #   retries: 30
-
-  conversation:
-    build:
-      context: .
-      dockerfile: docker/python/Dockerfile.dev
-      args:
-        - SERVICE_NAME=conversation
-    env_file:
-      - .env.dev
-    environment:
-      - SERVICE_NAME=conversation
-      - SERVICE_ID=conversation.service
-    volumes:
-      - ./services/conversation:/app
-      - ./common:/app/common
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
-    #   interval: 5s
-    #   timeout: 3s
-    #   retries: 30
-
-  embeddings:
-    build:
-      context: .
-      dockerfile: docker/python/Dockerfile.dev
-      args:
-        - SERVICE_NAME=embeddings
-    env_file:
-      - .env.dev
-    environment:
-      - SERVICE_NAME=embeddings
-      - SERVICE_ID=embeddings.service
-    volumes:
-      - ./services/embeddings:/app
-      - ./common:/app/common
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
-    #   interval: 5s
-    #   timeout: 3s
-    #   retries: 30
-
-  s3-gateway:
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    build:
-      context: .
-      dockerfile: docker/python/Dockerfile.dev
-      args:
-        - SERVICE_NAME=s3-gateway
-    env_file:
-      - .env.dev
-    environment:
-      - SERVICE_NAME=storage
-      - SERVICE_ID=storage.service
-    volumes:
-      - ./services/s3-gateway:/app
-      - ./common:/app/common
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
-    #   interval: 5s
-    #   timeout: 3s
-    #   retries: 30
-
-  s3-init-sidecar:
-    image: amazon/aws-cli
-    entrypoint: ["/bin/sh", "-c"]
-    command: >
-      "sleep 5 && aws --endpoint-url=http://s3:9000 s3 mb s3://${S3_BUCKET_NAME} || true"
-    env_file:
-      - .env.dev
-    environment:
-      - AWS_ACCESS_KEY_ID=${S3_ACCESS_KEY}
-      - AWS_SECRET_ACCESS_KEY=${S3_SECRET_KEY}
-    depends_on:
-      - s3-gateway
-
-  knowledgebase:
-    build:
-      context: .
-      dockerfile: docker/python/Dockerfile.knowledgebase.dev
-      args:
-        - SERVICE_NAME=knowledgebase
-    env_file:
-      - .env.dev
-    environment:
-      - SERVICE_NAME=knowledgebase
-      - SERVICE_ID=knowledgebase.service
-    volumes:
-      - ./services/knowledgebase:/app
-      - ./common:/app/common
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
-    #   interval: 5s
-    #   timeout: 3s
-    #   retries: 30
 
   mcp:
     build:
@@ -198,14 +48,29 @@ services:
       dockerfile: docker/python/Dockerfile.dev
       args:
         - SERVICE_NAME=mcp
-    command: ["python", "main.py"]
+    command: ['python', 'main.py']
     env_file:
       - .env.dev
     environment:
       - SERVICE_NAME=mcp
       - SERVICE_ID=mcp.service
     volumes:
-      - ./services/mcp:/app
+      - ./service/mcp:/app
+      - ./common:/app/common
+
+  template:
+    build:
+      context: .
+      dockerfile: docker/python/Dockerfile.dev
+      args:
+        - SERVICE_NAME=template
+    env_file:
+      - .env.dev
+    environment:
+      - SERVICE_NAME=template
+      - SERVICE_ID=template.service
+    volumes:
+      - ./service/template:/app
       - ./common:/app/common
 
 networks:

@@ -1,27 +1,44 @@
-from celery import Celery
 import os
 
-RABBITMQ_USER = os.getenv("RABBITMQ_USER")
-RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD")
-RABBITMQ_HOST = os.getenv("RABBITMQ_HOST")
-RABBITMQ_PORT = os.getenv("RABBITMQ_PORT")
+from celery import Celery
 
-REDIS_HOST = os.getenv("REDIS_HOST")
-REDIS_PORT = os.getenv("REDIS_PORT")
-REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+CELERY_RABBITMQ_HOST = os.getenv("CELERY_RABBITMQ_HOST")
+CELERY_RABBITMQ_PORT = os.getenv("CELERY_RABBITMQ_PORT")
+CELERY_RABBITMQ_USER = os.getenv("CELERY_RABBITMQ_USER")
+CELERY_RABBITMQ_PASSWORD = os.getenv("CELERY_RABBITMQ_PASSWORD")
+
+CELERY_REDIS_HOST = os.getenv("CELERY_REDIS_HOST")
+CELERY_REDIS_PORT = os.getenv("CELERY_REDIS_PORT")
+CELERY_REDIS_PASSWORD = os.getenv("CELERY_REDIS_PASSWORD")
 CELERY_REDIS_DB = os.getenv("CELERY_REDIS_DB")
 
 
-def get_worker():
-    return Celery(
-        "celery.service",
-        broker=f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}//",
-        backend=f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{CELERY_REDIS_DB}",
+def get_celery_worker(
+    name: str = "celery.worker",
+    rabbitmq_host: str = CELERY_RABBITMQ_HOST,
+    rabbitmq_port: str = CELERY_RABBITMQ_PORT,
+    rabbitmq_user: str = CELERY_RABBITMQ_USER,
+    rabbitmq_password: str = CELERY_RABBITMQ_PASSWORD,
+    redis_host: str = CELERY_REDIS_HOST,
+    redis_port: str = CELERY_REDIS_PORT,
+    redis_password: str = CELERY_REDIS_PASSWORD,
+    redis_db: str = CELERY_REDIS_DB,
+):
+    broker_uri = (
+        f"amqp://{rabbitmq_user}:{rabbitmq_password}@{rabbitmq_host}:{rabbitmq_port}//"
     )
+    backend_uri = f"redis://:{redis_password}@{redis_host}:{redis_port}/{redis_db}"
+    return Celery(name, broker=broker_uri, backend=backend_uri)
 
 
-def get_client(name: str):
-    return Celery(
-        name,
-        broker=f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}//",
+def get_celery_client(
+    name: str = "celery.client",
+    rabbitmq_host: str = CELERY_RABBITMQ_HOST,
+    rabbitmq_port: str = CELERY_RABBITMQ_PORT,
+    rabbitmq_user: str = CELERY_RABBITMQ_USER,
+    rabbitmq_password: str = CELERY_RABBITMQ_PASSWORD,
+):
+    broker_uri = (
+        f"amqp://{rabbitmq_user}:{rabbitmq_password}@{rabbitmq_host}:{rabbitmq_port}//"
     )
+    return Celery(name, broker=broker_uri)

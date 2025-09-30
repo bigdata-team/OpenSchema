@@ -10,7 +10,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y curl && apt-get clean
 RUN apt-get update && apt-get install -y poppler-utils tesseract-ocr && rm -rf /var/lib/apt/lists/*
 
-COPY services/${SERVICE_NAME}/requirements.txt ./
+COPY service/${SERVICE_NAME}/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 8000
