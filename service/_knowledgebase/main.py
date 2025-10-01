@@ -135,7 +135,6 @@ async def preprocess(
                 You are an expert at structured data extraction. You will be given unstructured text from a document and should convert it into the given structure.
                 Your task is to process text and extract all meaningful entities, their topics, and their content. Be as detailed as possible, and ensure that each topic is distinct and non-overlapping.
                 Do not describe any images, only the text content.
-                Return only TWO TOPICS IN THE LIST.
                 """,
             },
             {"role": "user", "content": f"{stringify(pages)}."},
