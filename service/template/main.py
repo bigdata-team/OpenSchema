@@ -1,30 +1,10 @@
-import os
+from dotenv import load_dotenv
 
-from fastapi import FastAPI
+load_dotenv()
 
-from common.controller import create_healthz, ping
-from common.repository import *
+from controller.controller import app
 
-SERVICE_ID = os.getenv("SERVICE_ID")
-SERVICE_NAME = os.getenv("SERVICE_NAME")
+if __name__ == "__main__":
+    import uvicorn
 
-
-healthz = create_healthz(
-    repositories=[
-        PostgresRepository(),
-        AsyncPostgresRepository(),
-        AsyncMongoRepository(),
-        Neo4jRepository(),
-        AsyncNeo4jRepository(),
-        S3Repository(),
-        AsyncS3Repositry(),
-        RedisRepository(),
-        AsyncRedisRepository(),
-        AsyncKafkaRepository(),
-    ]
-)
-
-
-app = FastAPI(root_path=f"/api/v1/{SERVICE_NAME}")
-app.get("/ping")(ping)
-app.get("/healthz")(healthz)
+    uvicorn.run("controller.controller:app", host="0.0.0.0", port=8000, reload=True)
