@@ -21,14 +21,14 @@ services:
   #   environment:
   #     - SERVICE_NAME=auth
   #     - SERVICE_ID=template.service
-  #   volumes:
-  #     - ./service/template:/app
-  #     - ./common:/app/common
+  #   #volumes:
+  #   #  - ./service/template:/app
+  #   #  - ./common:/app/common
 
   celery-worker:
     build:
       context: .
-      dockerfile: docker/python/Dockerfile.dev
+      dockerfile: docker/python/Dockerfile
       args:
         - SERVICE_NAME=celery
     command: >
@@ -38,14 +38,14 @@ services:
     environment:
       - SERVICE_NAME=celery
       - SERVICE_ID=celery.service
-    volumes:
-      - ./service/celery:/app
-      - ./common:/app/common
+    #volumes:
+    #  - ./service/celery:/app
+    #  - ./common:/app/common
 
   mcp:
     build:
       context: .
-      dockerfile: docker/python/Dockerfile.dev
+      dockerfile: docker/python/Dockerfile
       args:
         - SERVICE_NAME=mcp
     command: ['python', 'main.py']
@@ -54,14 +54,14 @@ services:
     environment:
       - SERVICE_NAME=mcp
       - SERVICE_ID=mcp.service
-    volumes:
-      - ./service/mcp:/app
-      - ./common:/app/common
+    #volumes:
+    #  - ./service/mcp:/app
+    #  - ./common:/app/common
 
   template:
     build:
       context: .
-      dockerfile: docker/python/Dockerfile.dev
+      dockerfile: docker/python/Dockerfile
       args:
         - SERVICE_NAME=template
     env_file:
@@ -69,9 +69,12 @@ services:
     environment:
       - SERVICE_NAME=template
       - SERVICE_ID=template.service
+    #volumes:
+    #  - ./service/template:/app
+    #  - ./common:/app/common
     volumes:
-      - ./service/template:/app
-      - ./common:/app/common
+      - ./service/template:/app/dev
+    command: ["python", "-u", "dev/main.py"]
 
 networks:
   shared-net:
