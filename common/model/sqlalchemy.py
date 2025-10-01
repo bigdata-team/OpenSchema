@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from sqlalchemy import Column, DateTime, Integer, Sequence
+from sqlalchemy import Column, DateTime, Integer, Sequence, Text
 from sqlalchemy.orm import declarative_base
 
 from common.util import now
@@ -10,7 +10,7 @@ _Base = declarative_base()
 class Base(_Base):
     __abstract__ = True
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Text, primary_key=True)
     seq = Column(Integer, autoincrement=True)
     created_at = Column(DateTime, default=now())
     updated_at = Column(DateTime, default=now(), onupdate=now())

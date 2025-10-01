@@ -1,10 +1,14 @@
-from dotenv import load_dotenv
+import os
 
-load_dotenv()
+from fastapi import FastAPI
 
-from controller.controller import app
 
-if __name__ == "__main__":
-    import uvicorn
+SERVICE_ID = os.getenv("SERVICE_ID")
+SERVICE_NAME = os.getenv("SERVICE_NAME")
 
-    uvicorn.run("controller.controller:app", host="0.0.0.0", port=8000, reload=True)
+
+app = FastAPI(
+    root_path=f"/api/v1/{SERVICE_NAME}"
+)
+
+app.add_routes

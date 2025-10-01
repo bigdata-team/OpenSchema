@@ -53,10 +53,10 @@ def context(method):
 class Repository(ABC):
     def __init__(
         self,
-        name: str,
-        connection: callable,
+        name: str = None,
+        connection: callable = None,
     ):
-        self.name = name
+        self.name = name or self.__class__.__name__
         self.connection = connection
         self.session = None
 
@@ -64,30 +64,14 @@ class Repository(ABC):
     def connect(self):
         raise NotImplementedError
 
-    @context
-    def create(self, model):
-        raise NotImplementedError
-
-    @context
-    def get(self, id):
-        raise NotImplementedError
-
-    @context
-    def update(self, model):
-        raise NotImplementedError
-
-    @context
-    def delete(self, id):
-        raise NotImplementedError
-
 
 class AsyncRepository(ABC):
     def __init__(
         self,
-        name: str,
-        connection: callable,
+        name: str = None,
+        connection: callable = None,
     ):
-        self.name = name
+        self.name = name or self.__class__.__name__
         self.connection = connection
         self.session = None
 
