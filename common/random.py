@@ -114,18 +114,18 @@ def configure_id_generator(
     _ID_GEN = TimeOrderedIDGenerator(worker_str=worker_str, seq_digits=seq_digits)
 
 
-def new_id() -> str:
+def get_id() -> str:
     """Generate a new unique ID: YYMMDDHHMMSS + microseconds(6) + worker(2) + seq."""
     return _ID_GEN.next_id()
 
 
-def new_unique_id(prev_id: str | None = None) -> str:
+def get_unique_id(prev_id: str | None = None) -> str:
     """Generate a new ID, ensuring it differs from prev_id (if provided)."""
     if prev_id is None:
-        return new_id()
+        return get_id()
     for _ in range(100):
-        nid = new_id()
+        nid = get_id()
         if nid != prev_id:
             return nid
         time.sleep(0.0005)
-    return new_id()
+    return get_id()
