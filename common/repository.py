@@ -9,7 +9,7 @@ from common.connection.neo4j import get_aioneo4j, get_neo4j
 from common.connection.postgres import get_aiopostgres, get_postgres
 from common.connection.redis import get_aioredis, get_redis
 from common.connection.s3 import get_aios3, get_s3
-from common.util import now
+from common.connection.util.util import now
 
 
 def context(method):

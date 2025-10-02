@@ -23,7 +23,7 @@ from common.connection.celery import get_client
 from common.lifespan import compose, kafka, mongo, neo4j, postgres
 from common.middleware import *
 from common.models.http import DataResponseModel, create_response
-from common.util import stringify
+from common.connection.util.util import stringify
 
 SERVICE_ID = os.getenv("SERVICE_ID")
 SERVICE_NAME = os.getenv("SERVICE_NAME")

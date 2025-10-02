@@ -13,7 +13,7 @@ from common.lifespan import compose, kafka, postgres, redis
 from common.middleware import *
 from common.models.event import create_event
 from common.models.http import DataResponseModel, create_response
-from common.util import get_random_name, hash_password, verify_password
+from common.connection.util.util import get_random_name, hash_password, verify_password
 
 app = FastAPI(
     root_path="/api/v1/auth",

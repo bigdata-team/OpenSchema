@@ -6,6 +6,7 @@ WORKDIR /app
 
 RUN pip install --upgrade pip
 COPY service/${SERVICE_NAME}/requirements.txt ./
+
 RUN pip install --no-cache-dir -r requirements.txt
 
 FROM installer
