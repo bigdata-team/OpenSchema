@@ -8,7 +8,7 @@ from models.db import *
 from models.http import *
 from sqlalchemy import text
 
-from common import jwt
+from common.jwt import jwt
 from common.lifespan import compose, kafka, postgres, redis
 from common.middleware import *
 from common.models.event import create_event

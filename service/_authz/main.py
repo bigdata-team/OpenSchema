@@ -8,7 +8,7 @@ from models.db import *
 from models.http import *
 from sqlalchemy import text
 
-from common.jwt import get_tokens
+from common.jwt.jwt import get_tokens
 from common.lifespan import compose, kafka, postgres, redis
 from common.middleware import CorrelationIdMiddleware
 from common.models.event import create_event
