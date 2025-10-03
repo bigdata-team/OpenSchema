@@ -1,10 +1,13 @@
 import os
+
 from fastapi import FastAPI
-from controller import router
-from common.middleware import CorrelationIdMiddleware, AuthenticationMiddleware
+from fastapi.openapi.utils import get_openapi
+from router import private_router, public_router
+
+from common.middleware import CorrelationIdMiddleware
 
 SERVICE_ID = os.getenv("SERVICE_ID")
-SERVICE_NAME = os.getenv("SERVICE_NAME")
+SERVICE_NAME = os.getenv("SERVICE_NAME", "")
 
 app = FastAPI(
     title="FastAPI",
@@ -13,10 +16,37 @@ app = FastAPI(
     root_path=f"/api/v1/{SERVICE_NAME}",
 )
 
-app.add_middleware(AuthenticationMiddleware)
 app.add_middleware(CorrelationIdMiddleware)
 
-app.include_router(router)
+app.include_router(public_router, prefix="")
+app.include_router(private_router, prefix="")
+
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+    )
+    server_url = app.root_path
+    openapi_schema["servers"] = [{"url": server_url}]
+    components = openapi_schema.setdefault("components", {})
+    security_schemes = components.setdefault("securitySchemes", {})
+    security_schemes["BearerAuth"] = {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Use jwt access token for authorization",
+    }
+    openapi_schema["security"] = [{"BearerAuth": []}]
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi
 
 
 if __name__ == "__main__":

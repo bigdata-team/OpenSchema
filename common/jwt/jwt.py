@@ -1,6 +1,8 @@
-import time
 import os
+import time
+
 from jose import jwt
+
 from common.jwt.model import AccessTokenPayload, RefreshTokenPayload, TokenPayload
 from common.util.random import get_id
 

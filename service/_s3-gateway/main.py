@@ -12,11 +12,11 @@ from models.http import *
 from sqlalchemy import text
 
 from common.chat import Handler
+from common.connection.util.util import Now
 from common.lifespan import compose, kafka, postgres, s3
 from common.middleware import *
 from common.models.event import create_event
 from common.models.http import DataResponseModel, create_response
-from common.connection.util.util import Now
 
 S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "default")
 S3_PRESIGN_EXPIRE_SECONDS = int(os.getenv("S3_PRESIGN_EXPIRE_SECONDS", 900))

@@ -1,5 +1,6 @@
+from typing import Any, Dict
+
 from repository.info import InfoRepository
-from typing import Dict, Any
 
 
 class InfoService:

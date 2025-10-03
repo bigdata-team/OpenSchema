@@ -1,9 +1,9 @@
-from datetime import datetime, timezone
 import os
 import re
 import threading
 import time
 import uuid
+from datetime import datetime, timezone
 
 
 def _format_ts_micro(dt: datetime) -> str:

@@ -1,6 +1,7 @@
 import time
-from common.repository import AsyncRedisRepository
+
 from common.jwt.model import TokenPayload, create_blacklist_value
+from common.repository import AsyncRedisRepository
 
 
 class JwtRepository(AsyncRedisRepository):

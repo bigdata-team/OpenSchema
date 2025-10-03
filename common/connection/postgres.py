@@ -2,7 +2,8 @@ import os
 from contextlib import asynccontextmanager, contextmanager
 
 from sqlalchemy import create_engine
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
+                                    create_async_engine)
 from sqlalchemy.orm import sessionmaker
 
 POSTGRES_HOST = os.getenv("POSTGRES_HOST")

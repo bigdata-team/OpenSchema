@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from sqlalchemy import Column, DateTime, Integer, Sequence, Text, Boolean
+from sqlalchemy import Boolean, Column, DateTime, Integer, Sequence, Text
 from sqlalchemy.orm import declarative_base
 
 from common.model.sqlalchemy import Base
