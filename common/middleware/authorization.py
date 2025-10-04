@@ -4,8 +4,8 @@ from fastapi import HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
-from common.jwt import verify_token
 from common.model.http import create_response_model
+from common.util.jwt import verify_token
 
 
 def _get_bearer_token(value: str, prefix: str = "Bearer ") -> str | None:

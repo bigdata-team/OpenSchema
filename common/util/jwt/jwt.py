@@ -3,7 +3,8 @@ import time
 
 from jose import jwt
 
-from common.jwt.model import AccessTokenPayload, RefreshTokenPayload, TokenPayload
+from common.model.jwt import (AccessTokenPayload, RefreshTokenPayload,
+                              TokenPayload)
 from common.util.random import get_id
 
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")

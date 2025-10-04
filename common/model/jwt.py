@@ -2,28 +2,21 @@ from pydantic import BaseModel
 
 
 class TokenPayload(BaseModel):
-    pass
+    sub: str
+    sid: str
+    iat: int
+    exp: int
+    nbf: int
+    jti: str
 
 
 class AccessTokenPayload(TokenPayload):
     iss: str
     aud: list[str] | str
 
-    sub: str
-    sid: str
-    iat: int
-    exp: int
-    nbf: int
-    jti: str
-
 
 class RefreshTokenPayload(TokenPayload):
-    sub: str
-    sid: str
-    iat: int
-    exp: int
-    nbf: int
-    jti: str
+    pass
 
 
 def create_blacklist_value(id) -> str:

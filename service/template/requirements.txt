@@ -10,6 +10,7 @@ pydantic
 pydantic[email]
 redis
 aioboto3
+kafka-python
 aiokafka
 neo4j
 langchain

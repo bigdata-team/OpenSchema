@@ -1,6 +1,6 @@
 import os
 
-from common.repository import Repository
+from common.repository.repository import Repository
 
 
 class InfoRepository(Repository):

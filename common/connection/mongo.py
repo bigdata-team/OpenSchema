@@ -1,21 +1,83 @@
 import os
-
-import motor.motor_asyncio
-
-MONGO_HOST = os.getenv("MONGO_HOST")
-MONGO_PORT = os.getenv("MONGO_PORT")
-MONGO_DB = os.getenv("MONGO_DB")
-MONGO_USER = os.getenv("MONGO_USER")
-MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")
+from ._base import unpack, Connection, AsyncConnection, Registry
+from common.util.hash import sha1
 
 
-async def get_aiomongo(
-    host=MONGO_HOST,
-    port=MONGO_PORT,
-    user=MONGO_USER,
-    password=MONGO_PASSWORD,
-    db=MONGO_DB,
-):
-    uri = f"mongodb://{user}:{password}@{host}:{port}"
-    client = motor.motor_asyncio.AsyncIOMotorClient(uri)
-    return client[db]
+class MongoConnection(Connection):
+    def __init__(
+        self,
+        key: str = None,
+        host: str = os.getenv("MONGO_HOST"),
+        port: str = os.getenv("MONGO_PORT"),
+        user: str = os.getenv("MONGO_USER"),
+        password: str = os.getenv("MONGO_PASSWORD"),
+        db: str = os.getenv("MONGO_DB"),
+    ):
+        from pymongo import MongoClient, database
+
+        self.host = host
+        self.port = port
+        self.user = user
+        self.password = password
+        self.db = db
+
+        self.key = key or f"sync.mongo.{self.host}.{self.port}.{self.user}.{self.db}"
+
+        if not Registry.has(self.key):
+            client = MongoClient(self.uri)
+            Registry.register(
+                self.key,
+                {
+                    "client": client,
+                },
+            )
+
+        self.client = Registry.get(self.key)["client"]
+        self.session: database.Database = self.client[self.db]
+
+    @property
+    def uri(self):
+        return f"mongodb://{self.user}:{self.password}@{self.host}:{self.port}"
+
+    def connect(self):
+        return self.session.command("ping")
+
+
+class AsyncMongoConnection(AsyncConnection):
+    def __init__(
+        self,
+        key: str = None,
+        host: str = os.getenv("MONGO_HOST"),
+        port: str = os.getenv("MONGO_PORT"),
+        user: str = os.getenv("MONGO_USER"),
+        password: str = os.getenv("MONGO_PASSWORD"),
+        db: str = os.getenv("MONGO_DB"),
+    ):
+        from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
+
+        self.host = host
+        self.port = port
+        self.user = user
+        self.password = password
+        self.db = db
+
+        self.key = key or f"async.mongo.{self.host}.{self.port}.{self.user}.{self.db}"
+
+        if not Registry.has(self.key):
+            client = AsyncIOMotorClient(self.uri)
+            Registry.register(
+                self.key,
+                {
+                    "client": client,
+                },
+            )
+
+        self.client = Registry.get(self.key)["client"]
+        self.session: AsyncIOMotorDatabase = self.client[self.db]
+
+    @property
+    def uri(self):
+        return f"mongodb://{self.user}:{self.password}@{self.host}:{self.port}"
+
+    async def connect(self):
+        return await self.session.command("ping")
