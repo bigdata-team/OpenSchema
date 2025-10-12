@@ -1,4 +1,4 @@
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 
 from fastapi import Request
 
@@ -6,11 +6,10 @@ from fastapi import Request
 def compose(*lifespans):
     @asynccontextmanager
     async def composed_lifespan(app):
-        for lifespan in lifespans:
-            await lifespan(app).__aenter__()
-        yield
-        for lifespan in reversed(lifespans):
-            await lifespan(app).__aexit__(None, None, None)
+        async with AsyncExitStack() as stack:
+            for lifespan in lifespans:
+                await stack.enter_async_context(lifespan(app))
+            yield
 
     return composed_lifespan
 

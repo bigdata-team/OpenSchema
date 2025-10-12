@@ -7,6 +7,7 @@ from common.lifespan import compose
 from common.lifespan.kafka import create_kafka_lifespan, get_kafka_session
 from common.lifespan.mongo import create_mongo_lifespan, get_mongo_session
 from common.lifespan.redis import create_redis_lifespan, get_redis_session
+from common.lifespan.neo4j import create_neo4j_lifespan, get_neo4j_session
 from common.lifespan.s3 import create_s3_lifespan, get_s3_session
 from common.lifespan.sql.postgres import create_postgres_lifespan, get_postgres_session
 from common.middleware import CorrelationIdMiddleware
@@ -16,6 +17,7 @@ lifespan = compose(
     create_mongo_lifespan(),
     create_kafka_lifespan(),
     create_redis_lifespan(),
+    create_neo4j_lifespan(),
     create_s3_lifespan(),
 )
 
@@ -60,37 +62,20 @@ app.openapi = custom_openapi
 
 
 from fastapi import File, UploadFile
-from model.sql import User
-
-from common.repository.mongo import (
-    KafkaMongoRepository,
-    MongoRepository,
-    create_kafka_mongo_repo,
-    create_mongo_repo,
-)
-from common.repository.redis import RedisRepository, create_redis_repo
-from common.repository.s3 import S3Repository, create_s3_repo
-from common.repository.sql import KafkaSqlRepository
-from common.repository.sql.postgres import (
-    create_kafka_postgres_repo,
-    create_postgres_repo,
-)
-
-# from model.mongo import User
+from common.repository.neo4j import Neo4jRepository, create_neo4j_repository
 
 
-@app.get("/delete")
-async def delete(
-    repo: S3Repository = Depends(create_s3_repo()),
+@app.get("/test")
+async def test(
+    repo: Neo4jRepository = Depends(create_neo4j_repository(str)),
 ):
-    await repo.delete("참여 동기.docx")
+    await repo.connect()
+    return {"message": "ok"}
 
 
 @app.post("/upload")
 async def upload(
     file: UploadFile = File(...),
-    repo: S3Repository = Depends(create_s3_repo()),
 ):
     contents = await file.read()
-    result = await repo.create_or_update(file.filename, contents)
     return {"message": "ok"}
