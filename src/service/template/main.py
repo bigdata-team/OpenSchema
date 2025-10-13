@@ -69,6 +69,9 @@ from common.repository.neo4j import Neo4jRepository, create_neo4j_repository
 async def test(
     repo: Neo4jRepository = Depends(create_neo4j_repository(str)),
 ):
+    from common.util.log import logger
+
+    logger.info("test log", "test-crid")
     await repo.connect()
     return {"message": "ok"}
 

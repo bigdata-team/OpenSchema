@@ -61,6 +61,24 @@ services:
       - ./src/service/template:/app
       - ./src/common:/app/common
 
+  mcp:
+    build:
+      context: .
+      dockerfile: docker/python/Dockerfile.dev
+      args:
+        - SERVICE_DIR=mcp
+    env_file:
+      - .env.dev
+    command: ['python', 'main.py']
+    environment:
+      - SERVICE_ID=mcp.service
+      - SERVICE_NAME=mcp
+      - SERVICE_API_VERSION=v1
+      - SERVICE_DB_SCHEMA=mcp
+    volumes:
+      - ./src/service/mcp:/app
+      - ./src/common:/app/common
+
 networks:
   shared-net:
     name: net
