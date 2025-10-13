@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
       interval: 5s
       timeout: 3s
       retries: 30
@@ -34,13 +34,13 @@ services:
 
   redis:
     image: redis
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    command: ['redis-server', '--requirepass', '${REDIS_PASSWORD}']
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     ports:
       - 6379:6379
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
       interval: 5s
       timeout: 3s
       retries: 30
@@ -57,7 +57,7 @@ services:
     volumes:
       - /data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
       interval: 5s
       timeout: 3s
       retries: 30
@@ -67,11 +67,11 @@ services:
     environment:
       NEO4J_AUTH: ${NEO4J_USER}/${NEO4J_PASSWORD}
       NEO4J_PLUGINS: '["apoc","genai"]'
-      NEO4J_dbms_security_procedures_allowlist: "apoc.*,gds.*,genai.*"
-      NEO4J_dbms_security_procedures_unrestricted: "jwt.security.*,apoc.*,genai.*"
-      NEO4J_apoc_export_file_enabled: "true"
-      NEO4J_apoc_import_file_enabled: "true"
-      NEO4J_server_directories_import: "/var/lib/neo4j/import"
+      NEO4J_dbms_security_procedures_allowlist: 'apoc.*,gds.*,genai.*'
+      NEO4J_dbms_security_procedures_unrestricted: 'jwt.security.*,apoc.*,genai.*'
+      NEO4J_apoc_export_file_enabled: 'true'
+      NEO4J_apoc_import_file_enabled: 'true'
+      NEO4J_server_directories_import: '/var/lib/neo4j/import'
       NEO4J_initial_dbms_default__database: ${NEO4J_DB}
     ports:
       - 7474:7474
@@ -81,20 +81,21 @@ services:
       - /logs
       - /var/lib/neo4j/import
     healthcheck:
-      test: ["CMD", "wget", "http://localhost:7474"]
+      test: ['CMD', 'wget', 'http://localhost:7474']
       interval: 5s
       timeout: 3s
       retries: 30
-  
+
   rabbitmq:
     image: rabbitmq:3-management
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
     ports:
       - 5672:5672
       - 15672:15672
-    
+
 networks:
   shared-net:
     name: net

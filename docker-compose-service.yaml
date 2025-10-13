@@ -42,6 +42,25 @@ services:
       - ./src/service/template:/app
       - ./src/common:/app/common
 
+  celery:
+    build:
+      context: .
+      dockerfile: docker/python/Dockerfile.dev
+      args:
+        - SERVICE_DIR=celery
+    env_file:
+      - .env.dev
+    command: >
+      celery -A main.worker worker -Q default
+    environment:
+      - SERVICE_ID=celery.service
+      - SERVICE_NAME=celery
+      - SERVICE_API_VERSION=v1
+      - SERVICE_DB_SCHEMA=celery
+    volumes:
+      - ./src/service/celery:/app
+      - ./src/common:/app/common
+
   mcp:
     build:
       context: .
