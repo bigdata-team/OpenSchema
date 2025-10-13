@@ -1,0 +1,16 @@
+fastapi[standard]
+python-jose
+
+aiokafka
+
+sqlmodel
+asyncpg
+
+motor
+beanie
+
+redis
+
+neo4j
+
+aioboto3
