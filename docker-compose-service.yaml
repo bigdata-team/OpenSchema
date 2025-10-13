@@ -42,23 +42,23 @@ services:
       - ./src/service/template:/app
       - ./src/common:/app/common
 
-  celery:
+  template-celery:
     build:
       context: .
       dockerfile: docker/python/Dockerfile.dev
       args:
-        - SERVICE_DIR=celery
+        - SERVICE_DIR=template
     env_file:
       - .env.dev
     command: >
-      celery -A main.worker worker -Q default
+      celery -A common.celery.worker worker -Q template --loglevel=info
     environment:
-      - SERVICE_ID=celery.service
-      - SERVICE_NAME=celery
+      - SERVICE_ID=template.service
+      - SERVICE_NAME=template
       - SERVICE_API_VERSION=v1
-      - SERVICE_DB_SCHEMA=celery
+      - SERVICE_DB_SCHEMA=template
     volumes:
-      - ./src/service/celery:/app
+      - ./src/service/template:/app
       - ./src/common:/app/common
 
   mcp:

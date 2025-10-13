@@ -61,24 +61,32 @@ def custom_openapi():
 app.openapi = custom_openapi
 
 
-from fastapi import File, UploadFile
-from common.repository.neo4j import Neo4jRepository, create_neo4j_repository
-
-
 @app.get("/test")
-async def test(
-    repo: Neo4jRepository = Depends(create_neo4j_repository(str)),
-):
-    from common.util.log import logger
+async def test():
+    from common.celery.job import greet
+    from job import add
 
-    logger.info("test log", "test-crid")
-    await repo.connect()
-    return {"message": "ok"}
+    from celery import chain
+
+    tasks = chain(greet.s("***********"), add.s(23))
+    result = tasks.apply_async()
+
+    return {"message": "This is a test endpoint.", "celery_task_id": result.id}
 
 
-@app.post("/upload")
-async def upload(
-    file: UploadFile = File(...),
-):
-    contents = await file.read()
-    return {"message": "ok"}
+from celery.result import AsyncResult
+from common.celery.worker import worker
+
+
+@app.get("/jobs/{task_id}")
+async def get_job_status(task_id: str):
+    # Ensure we query the SAME Celery app/backend as the worker
+    result = AsyncResult(task_id, app=worker)
+    return {
+        "task_id": task_id,
+        "state": result.state,
+        "status": result.status,
+        "ready": result.ready(),
+        "successful": (result.successful() if result.ready() else False),
+        "result": (result.result if result.ready() else None),
+    }
