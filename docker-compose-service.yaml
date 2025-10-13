@@ -25,25 +25,6 @@ services:
   #   volumes:
   #     - ./src/service/celery:/app
   #     - ./src/common:/app/common
-
-  mcp:
-    build:
-      context: .
-      dockerfile: docker/python/Dockerfile.dev
-      args:
-        - SERVICE_DIR=mcp
-    env_file:
-      - .env.dev
-    environment:
-      - SERVICE_ID=mcp.service
-      - SERVICE_NAME=mcp
-      - SERVICE_API_VERSION=v1
-      - SERVICE_DB_SCHEMA=mcp
-    command: ['python', 'main.py']
-    volumes:
-      - ./src/service/mcp:/app
-      - ./src/common:/app/common
-
   template:
     build:
       context: .

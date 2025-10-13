@@ -1,1 +1,0 @@
-docker compose --env-file .env.dev -f docker-compose-kafka.yaml up
