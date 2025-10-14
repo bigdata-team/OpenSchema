@@ -7,6 +7,12 @@ LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = os.getenv(
     "LOG_LEVEL", "INFO"
 )
 
+JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+JWT_ENCODE_SECRET = os.getenv("JWT_ENCODE_SECRET", "supersecret!")
+JWT_DECODE_SECRET = os.getenv("JWT_DECODE_SECRET", "supersecret!")
+JWT_ACCESS_TOKEN_TTL = int(os.getenv("JWT_ACCESS_TOKEN_TTL", "180"))
+JWT_REFRESH_TOKEN_TTL = int(os.getenv("JWT_REFRESH_TOKEN_TTL", "86400"))
+
 SERVICE_ID = os.getenv("SERVICE_ID")
 SERVICE_NAME = os.getenv("SERVICE_NAME")
 SERVICE_API_VERSION = os.getenv("SERVICE_API_VERSION", "v1")

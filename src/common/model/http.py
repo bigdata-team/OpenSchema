@@ -8,35 +8,28 @@ T = TypeVar("T")
 
 
 class Body(BaseModel):
-    message: str | None
     detail: str | None
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class DataBody(Body, Generic[T]):
-    data: T
+    data: T | None
 
 
 @overload
-def create_response_model(message: str = "Ok", detail: str | None = None) -> Body: ...
+def create_response_model(detail: str | None = None) -> Body: ...
 @overload
-def create_response_model(
-    message: str = "Ok", detail: str | None = None, data: T = ...
-) -> DataBody[T]: ...
+def create_response_model(detail: str | None = None, data: T = ...) -> DataBody[T]: ...
 
 
-def create_response_model(
-    message: str = "Ok", detail: str | None = None, data: T | None = None
-):
+def create_response_model(detail: str | None = None, data: T | None = None):
     if data is not None:
-        return DataBody(message=message, detail=detail, data=data)
-    return Body(message=message, detail=detail)
+        return DataBody(detail=detail, data=data)
+    return Body(detail=detail)
 
 
-def create_response(
-    message: str = "Ok", detail: str = None, data: T = None, code: int = 200
-):
+def create_response(code: int = 200, detail: str = None, data: T = None):
 
-    content = create_response_model(message=message, detail=detail, data=data)
+    content = create_response_model(detail=detail, data=data)
 
     return Response(content.model_dump_json(), status_code=code)

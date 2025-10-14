@@ -110,7 +110,7 @@ def create_kafka_postgres_repo(model: Type[T]) -> callable:
     from common.connection import get_session
     from common.connection.kafka import KafkaConnection
     from common.connection.sql import PostgresConnection
-    from common.lifespan import get_crid
+    from common.middleware.correlation import get_crid
 
     def _get_repo(
         sql=Depends(get_session(PostgresConnection)),

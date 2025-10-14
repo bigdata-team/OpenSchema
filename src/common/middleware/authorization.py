@@ -4,6 +4,7 @@ from fastapi import HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
+from common.config import AUDIENCE, ISSUER
 from common.model.http import create_response_model
 from common.util.jwt import verify_token
 
@@ -24,8 +25,8 @@ class AuthorizationMiddleware(BaseHTTPMiddleware):
         app,
         auth_header: str = "Authorization",
         token_prefix: str = "Bearer ",
-        issuer: str = "auth.service",
-        audience: str = "service",
+        issuer: str = ISSUER,
+        audience: str = AUDIENCE,
         bypass_patterns: list[str] = [
             r".*/docs.*",
             r".*/redoc.*",
@@ -56,9 +57,7 @@ class AuthorizationMiddleware(BaseHTTPMiddleware):
         if not payload:
             raise HTTPException(
                 status_code=401,
-                detail=create_response_model(
-                    message="Unauthorized", detail="Invalid token"
-                ),
+                detail=create_response_model(detail="Invalid token"),
             )
         response = await call_next(request)
         return response
@@ -67,8 +66,9 @@ class AuthorizationMiddleware(BaseHTTPMiddleware):
 def get_auth_dependency(
     auth_header: str = "Authorization",
     token_prefix: str = "Bearer ",
-    issuer: str = "auth.service",
-    audience: str = "service",
+    issuer: str = ISSUER,
+    audience: str = AUDIENCE,
+    strict: bool = True,
 ):
     def dependency(request: Request):
         header = request.headers.get(auth_header, "")
@@ -77,7 +77,7 @@ def get_auth_dependency(
         request.state.token = token
         request.state.token_payload = payload
 
-        if not payload:
+        if strict and not payload:
             raise HTTPException(
                 status_code=401,
                 detail="Unauthorized",
@@ -85,3 +85,19 @@ def get_auth_dependency(
         return payload
 
     return dependency
+
+
+def get_token():
+    async def _unpack(request: Request) -> str | None:
+        token = request.state.token or None
+        return token
+
+    return _unpack
+
+
+def get_token_payload():
+    async def _unpack(request: Request) -> str | None:
+        payload = request.state.token_payload or None
+        return payload
+
+    return _unpack

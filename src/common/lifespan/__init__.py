@@ -1,1 +1,1 @@
-from .lifespan import Lifespan, compose, get_crid
+from .lifespan import Lifespan, compose

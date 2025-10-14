@@ -9,58 +9,6 @@ services:
       - ./cert.pem:/etc/ssl/certs/cert.pem
       - ./key.pem:/etc/ssl/certs/key.pem
 
-  # celery-worker:
-  #   build:
-  #     context: .
-  #     dockerfile: docker/python/Dockerfile.dev
-  #     args:
-  #       - SERVICE_NAME=celery
-  #   command: >
-  #     celery -A main worker -l info -Q q_default
-  #   env_file:
-  #     - .env.dev
-  #   environment:
-  #     - SERVICE_NAME=celery
-  #     - SERVICE_ID=celery.service
-  #   volumes:
-  #     - ./src/service/celery:/app
-  #     - ./src/common:/app/common
-  template:
-    build:
-      context: .
-      dockerfile: docker/python/Dockerfile.dev
-      args:
-        - SERVICE_DIR=template
-    env_file:
-      - .env.dev
-    environment:
-      - SERVICE_ID=template.service
-      - SERVICE_NAME=template
-      - SERVICE_API_VERSION=v1
-      - SERVICE_DB_SCHEMA=template
-    volumes:
-      - ./src/service/template:/app
-      - ./src/common:/app/common
-
-  template-celery:
-    build:
-      context: .
-      dockerfile: docker/python/Dockerfile.dev
-      args:
-        - SERVICE_DIR=template
-    env_file:
-      - .env.dev
-    command: >
-      celery -A common.celery.worker worker -Q template --loglevel=info
-    environment:
-      - SERVICE_ID=template.service
-      - SERVICE_NAME=template
-      - SERVICE_API_VERSION=v1
-      - SERVICE_DB_SCHEMA=template
-    volumes:
-      - ./src/service/template:/app
-      - ./src/common:/app/common
-
   mcp:
     build:
       context: .
@@ -78,6 +26,76 @@ services:
     volumes:
       - ./src/service/mcp:/app
       - ./src/common:/app/common
+
+  chat:
+    build:
+      context: .
+      dockerfile: docker/python/Dockerfile.dev
+      args:
+        - SERVICE_DIR=chat
+    env_file:
+      - .env.dev
+    environment:
+      - SERVICE_ID=chat.service
+      - SERVICE_NAME=chat
+      - SERVICE_API_VERSION=v1
+      - SERVICE_DB_SCHEMA=chat
+    volumes:
+      - ./src/service/chat:/app
+      - ./src/common:/app/common
+
+  auth:
+    build:
+      context: .
+      dockerfile: docker/python/Dockerfile.dev
+      args:
+        - SERVICE_DIR=auth
+    env_file:
+      - .env.dev
+    environment:
+      - SERVICE_ID=auth.service
+      - SERVICE_NAME=auth
+      - SERVICE_API_VERSION=v1
+      - SERVICE_DB_SCHEMA=auth
+    volumes:
+      - ./src/service/auth:/app
+      - ./src/common:/app/common
+
+  # template:
+  #   build:
+  #     context: .
+  #     dockerfile: docker/python/Dockerfile.dev
+  #     args:
+  #       - SERVICE_DIR=template
+  #   env_file:
+  #     - .env.dev
+  #   environment:
+  #     - SERVICE_ID=template.service
+  #     - SERVICE_NAME=template
+  #     - SERVICE_API_VERSION=v1
+  #     - SERVICE_DB_SCHEMA=template
+  #   volumes:
+  #     - ./src/service/template:/app
+  #     - ./src/common:/app/common
+
+  # template-celery:
+  #   build:
+  #     context: .
+  #     dockerfile: docker/python/Dockerfile.dev
+  #     args:
+  #       - SERVICE_DIR=template
+  #   env_file:
+  #     - .env.dev
+  #   command: >
+  #     celery -A common.celery.worker worker -Q template --loglevel=info
+  #   environment:
+  #     - SERVICE_ID=template.service
+  #     - SERVICE_NAME=template
+  #     - SERVICE_API_VERSION=v1
+  #     - SERVICE_DB_SCHEMA=template
+  #   volumes:
+  #     - ./src/service/template:/app
+  #     - ./src/common:/app/common
 
 networks:
   shared-net:

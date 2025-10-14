@@ -1,16 +1,18 @@
-import os
 import time
 
 from jose import jwt
 
+from common.config import (
+    AUDIENCE,
+    ISSUER,
+    JWT_ACCESS_TOKEN_TTL,
+    JWT_ALGORITHM,
+    JWT_DECODE_SECRET,
+    JWT_ENCODE_SECRET,
+    JWT_REFRESH_TOKEN_TTL,
+)
 from common.model.jwt import AccessTokenPayload, RefreshTokenPayload, TokenPayload
 from common.util.random import generate_id
-
-JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
-JWT_ENCODE_SECRET = os.getenv("JWT_ENCODE_SECRET", "supersecret!")
-JWT_DECODE_SECRET = os.getenv("JWT_DECODE_SECRET", "supersecret!")
-JWT_ACCESS_TOKEN_TTL = int(os.getenv("JWT_ACCESS_TOKEN_TTL", 3 * 60))
-JWT_REFRESH_TOKEN_TTL = int(os.getenv("JWT_REFRESH_TOKEN_TTL", 7 * 24 * 60 * 60))
 
 
 def encode(payload: TokenPayload) -> str:
@@ -33,7 +35,9 @@ def decode(token: str, issuer: str = None, audience: str = None) -> TokenPayload
     return None
 
 
-def _verify_token(token: str, issuer: str = None, audience: str = None) -> TokenPayload:
+def _verify_token(
+    token: str, issuer: str = None, audience: str = None
+) -> AccessTokenPayload | RefreshTokenPayload | None:
     try:
         return decode(token, issuer=issuer, audience=audience)
     except Exception:
@@ -41,7 +45,7 @@ def _verify_token(token: str, issuer: str = None, audience: str = None) -> Token
 
 
 def verify_token(
-    token: str, issuer: str = "auth.service", audience: str = "service"
+    token: str, issuer: str = ISSUER, audience: str = AUDIENCE
 ) -> AccessTokenPayload | RefreshTokenPayload:
     access_token = _verify_token(token, issuer=issuer, audience=audience)
     refresh_token = _verify_token(token)
@@ -50,12 +54,12 @@ def verify_token(
 
 def claim_tokens(
     subject: str,
-    issuer: str = "auth.service",
-    audience: str = "service",
-    session_id: str = generate_id(),
+    issuer: str = ISSUER,
+    audience: str = AUDIENCE,
+    session_id: str | None = None,
 ) -> tuple[str, str]:
     now = int(time.time())
-
+    session_id = session_id or generate_id()
     access_payload = AccessTokenPayload(
         iss=issuer,
         aud=audience,

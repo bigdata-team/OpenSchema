@@ -23,3 +23,11 @@ class CorrelationIdMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         response.headers[self.header] = crid
         return response
+
+
+def get_crid():
+    async def _unpack(request: Request) -> str | None:
+        crid = request.state.crid or None
+        return crid
+
+    return _unpack
