@@ -1,21 +1,19 @@
 from celery import Celery
 from kombu import Queue
-from common.config.const import SERVICE_NAME
+
 from common.config.const import (
     CELERY_RABBITMQ_HOST,
     CELERY_RABBITMQ_PASSWORD,
-    CELERY_RABBITMQ_USER,
     CELERY_RABBITMQ_PORT,
+    CELERY_RABBITMQ_USER,
     CELERY_RABBITMQ_VHOST,
-)
-from common.config.const import (
+    CELERY_REDIS_DB,
     CELERY_REDIS_HOST,
     CELERY_REDIS_PASSWORD,
-    CELERY_REDIS_USER,
     CELERY_REDIS_PORT,
-    CELERY_REDIS_DB,
+    CELERY_REDIS_USER,
+    SERVICE_NAME,
 )
-
 
 BROKER_URL = f"amqp://{CELERY_RABBITMQ_USER}:{CELERY_RABBITMQ_PASSWORD}@{CELERY_RABBITMQ_HOST}:{CELERY_RABBITMQ_PORT}/{CELERY_RABBITMQ_VHOST}"
 BACKEND_URL = f"redis://{CELERY_REDIS_USER}:{CELERY_REDIS_PASSWORD}@{CELERY_REDIS_HOST}:{CELERY_REDIS_PORT}/{CELERY_REDIS_DB}"
@@ -47,9 +45,3 @@ worker.conf.update(
     task_track_started=True,
     broker_connection_retry_on_startup=True,
 )
-
-# try:
-#     worker.autodiscover_tasks(packages=["common.celery", "job"])
-# except Exception:
-#     # Safe no-op if packages aren't packages or discovery not needed
-#     pass

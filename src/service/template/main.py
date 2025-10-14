@@ -3,22 +3,16 @@ from fastapi.openapi.utils import get_openapi
 from router import private_router, public_router
 
 from common.config import PROJECT_NAME, SERVICE_API_VERSION, SERVICE_NAME
+from common.connection.kafka import KafkaConnection
+from common.connection.mongo import MongoConnection
+from common.connection.redis import RedisConnection
+from common.connection.s3 import S3Connection
+from common.connection.sql import PostgresConnection
 from common.lifespan import compose
-from common.lifespan.kafka import create_kafka_lifespan, get_kafka_session
-from common.lifespan.mongo import create_mongo_lifespan, get_mongo_session
-from common.lifespan.redis import create_redis_lifespan, get_redis_session
-from common.lifespan.neo4j import create_neo4j_lifespan, get_neo4j_session
-from common.lifespan.s3 import create_s3_lifespan, get_s3_session
-from common.lifespan.sql.postgres import create_postgres_lifespan, get_postgres_session
 from common.middleware import CorrelationIdMiddleware
 
 lifespan = compose(
-    create_postgres_lifespan(),
-    create_mongo_lifespan(),
-    create_kafka_lifespan(),
-    create_redis_lifespan(),
-    create_neo4j_lifespan(),
-    create_s3_lifespan(),
+    PostgresConnection, MongoConnection, RedisConnection, KafkaConnection, S3Connection
 )
 
 app = FastAPI(
@@ -61,32 +55,79 @@ def custom_openapi():
 app.openapi = custom_openapi
 
 
-@app.get("/test")
-async def test():
-    from common.celery.job import greet
-    from job import add
+# @app.get("/test")
+# async def test():
+#     from common.celery.job import greet
+#     from job import add
 
-    from celery import chain
+#     from celery import chain
 
-    tasks = chain(greet.s("***********"), add.s(23))
-    result = tasks.apply_async()
+#     tasks = chain(greet.s("***********"), add.s(23))
+#     result = tasks.apply_async()
 
-    return {"message": "This is a test endpoint.", "celery_task_id": result.id}
-
-
-from celery.result import AsyncResult
-from common.celery.worker import worker
+#     return {"message": "This is a test endpoint.", "celery_task_id": result.id}
 
 
-@app.get("/jobs/{task_id}")
-async def get_job_status(task_id: str):
-    # Ensure we query the SAME Celery app/backend as the worker
-    result = AsyncResult(task_id, app=worker)
-    return {
-        "task_id": task_id,
-        "state": result.state,
-        "status": result.status,
-        "ready": result.ready(),
-        "successful": (result.successful() if result.ready() else False),
-        "result": (result.result if result.ready() else None),
-    }
+# from celery.result import AsyncResult
+# from common.celery.worker import worker
+
+
+# @app.get("/jobs/{task_id}")
+# async def get_job_status(task_id: str):
+#     # Ensure we query the SAME Celery app/backend as the worker
+#     result = AsyncResult(task_id, app=worker)
+#     return {
+#         "task_id": task_id,
+#         "state": result.state,
+#         "status": result.status,
+#         "ready": result.ready(),
+#         "successful": (result.successful() if result.ready() else False),
+#         "result": (result.result if result.ready() else None),
+#     }
+
+
+from model.sql import User as U1
+
+from common.repository.sql import create_kafka_postgres_repo, create_postgres_repo
+
+
+@app.get("/pgrepo")
+async def pgrepo(repo=Depends(create_kafka_postgres_repo(U1))):
+
+    result = await repo.create(U1())
+    return result
+
+
+from model.mongo import User as U2
+
+from common.repository.mongo import create_kafka_mongo_repo, create_mongo_repo
+
+
+@app.get("/mongorepo")
+async def mongorepo(repo=Depends(create_kafka_mongo_repo(U2))):
+
+    result = await repo.create(U2())
+    return result
+
+
+from common.repository.redis import create_redis_repo
+
+
+@app.get("/redisrepo")
+async def redisrepo(repo=Depends(create_redis_repo(U2))):
+
+    result = await repo.create_or_update("someid", U2())
+    return result
+
+
+from fastapi import File, UploadFile
+
+from common.repository.s3 import create_s3_repo
+
+
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...), repo=Depends(create_s3_repo())):
+    contents = await file.read()
+    id = file.filename
+    result = await repo.create_or_update(id, contents)
+    return {"filename": id}

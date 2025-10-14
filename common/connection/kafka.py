@@ -1,5 +1,6 @@
 import os
-from ._base import unpack, Connection, AsyncConnection, Registry
+
+from ._base import AsyncConnection, Connection, Registry, unpack
 
 
 class KafkaConnection(Connection):

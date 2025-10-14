@@ -2,6 +2,9 @@ import json
 import os
 
 import httpx
+from common.chat import Handler
+from common.models.event import create_event
+from common.models.http import DataResponseModel, create_response
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
@@ -9,11 +12,8 @@ from fastapi.responses import Response, StreamingResponse
 from models.db import *
 from sqlalchemy import text
 
-from common.chat import Handler
 from common.lifespan import compose, kafka, postgres
 from common.middleware import *
-from common.models.event import create_event
-from common.models.http import DataResponseModel, create_response
 
 SERVICE_NAME = os.getenv("SERVICE_NAME")
 SERVICE_ID = os.getenv("SERVICE_ID")

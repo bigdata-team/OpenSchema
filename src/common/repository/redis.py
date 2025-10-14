@@ -1,14 +1,10 @@
 from typing import Type, TypeVar
 
-import redis as r
-from fastapi import Depends
 from pydantic import BaseModel
 from redis.asyncio import Redis
 
 from common.config.const import SERVICE_DB_SCHEMA
-from common.lifespan.redis import get_redis_session
-
-from .repository import Repository
+from common.repository import Repository
 
 T = TypeVar("T", bound=BaseModel | str)
 
@@ -50,8 +46,13 @@ class RedisRepository(Repository[T]):
 
 
 def create_redis_repo(model: Type[T]) -> callable:
+    from fastapi import Depends
+
+    from common.connection import get_session
+    from common.connection.redis import RedisConnection
+
     async def _get_repo(
-        redis=Depends(get_redis_session()),
+        redis=Depends(get_session(RedisConnection)),
     ) -> RedisRepository[T]:
         return RedisRepository(model, redis)
 

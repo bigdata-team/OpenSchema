@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field
-from common.config.const import LOG_LEVEL, SERVICE_NAME
 import time
+
+from pydantic import BaseModel, Field
+
+from common.config.const import LOG_LEVEL, SERVICE_NAME
 
 
 class Log(BaseModel):

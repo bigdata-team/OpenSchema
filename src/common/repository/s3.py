@@ -3,7 +3,6 @@ from typing import Any, TypeVar
 from aioboto3 import Session
 from fastapi import Depends
 
-from common.lifespan.s3 import get_s3_session
 from common.repository import Repository
 
 T = TypeVar("T")
@@ -32,7 +31,10 @@ class S3Repository(Repository[Any]):
 
 
 def create_s3_repo() -> callable:
-    async def _get_repo(s3=Depends(get_s3_session())) -> S3Repository:
+    from common.connection import get_session
+    from common.connection.s3 import S3Connection
+
+    async def _get_repo(s3=Depends(get_session(S3Connection))):
         return S3Repository(s3)
 
     return _get_repo

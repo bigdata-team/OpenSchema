@@ -1,6 +1,5 @@
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
-
 from common.models.db import Base
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
 
 
 class History(Base):

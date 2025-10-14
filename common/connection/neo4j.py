@@ -1,6 +1,8 @@
 import os
-from ._base import unpack, Connection, AsyncConnection, Registry
+
 from common.util.hash import sha1
+
+from ._base import AsyncConnection, Connection, Registry, unpack
 
 
 class Neo4jConnection(Connection):

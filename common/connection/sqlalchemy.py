@@ -1,11 +1,12 @@
 import os
-from ._base import unpack, Connection, AsyncConnection, Registry
+
+from ._base import AsyncConnection, Connection, Registry, unpack
 
 
 class SQLConnection(Connection):
     def __init__(self, uri: str, key: str = None):
         from sqlalchemy import create_engine
-        from sqlalchemy.orm import sessionmaker, Session
+        from sqlalchemy.orm import Session, sessionmaker
 
         self.key = key or f"sync.sql.{uri}"
         self.uri = uri

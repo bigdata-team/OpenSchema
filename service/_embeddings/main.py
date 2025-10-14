@@ -2,6 +2,8 @@ import json
 import os
 
 import httpx
+from common.models.event import create_event
+from common.models.http import DataResponseModel, create_response
 from fastapi import BackgroundTasks, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
@@ -11,8 +13,6 @@ from sqlalchemy import text
 
 from common.lifespan import compose, kafka, postgres
 from common.middleware import *
-from common.models.event import create_event
-from common.models.http import DataResponseModel, create_response
 
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")

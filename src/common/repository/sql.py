@@ -69,7 +69,8 @@ class KafkaSqlRepository(SqlRepository[T], KafkaMixin):
 
     async def create(self, obj: T) -> T:
         obj = await SqlRepository.create(self, obj)
-        print(await self.publish_event(payload=obj.model_dump(), action="created"))
+        if obj:
+            await self.publish_event(payload=obj.model_dump(), action="created")
         return obj
 
     async def get(self, id: str) -> T | None:
@@ -89,3 +90,33 @@ class KafkaSqlRepository(SqlRepository[T], KafkaMixin):
         if obj:
             await self.publish_event(payload=obj.model_dump(), action="deleted")
         return obj
+
+
+def create_postgres_repo(model: Type[T]) -> callable:
+    from fastapi import Depends
+
+    from common.connection import get_session
+    from common.connection.sql import PostgresConnection
+
+    def _get_repo(sql=Depends(get_session(PostgresConnection))):
+        return SqlRepository(model=model, sql=sql)
+
+    return _get_repo
+
+
+def create_kafka_postgres_repo(model: Type[T]) -> callable:
+    from fastapi import Depends
+
+    from common.connection import get_session
+    from common.connection.kafka import KafkaConnection
+    from common.connection.sql import PostgresConnection
+    from common.lifespan import get_crid
+
+    def _get_repo(
+        sql=Depends(get_session(PostgresConnection)),
+        kafka=Depends(get_session(KafkaConnection)),
+        crid=Depends(get_crid()),
+    ):
+        return KafkaSqlRepository(model=model, sql=sql, kafka=kafka, crid=crid)
+
+    return _get_repo

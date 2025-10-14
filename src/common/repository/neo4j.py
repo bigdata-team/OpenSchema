@@ -1,8 +1,8 @@
-from common.lifespan.neo4j import get_neo4j_session
-from fastapi import Depends
 from typing import Type, TypeVar
-from common.repository import Repository
+
 from neo4j import AsyncSession
+
+from common.repository import Repository
 
 T = TypeVar("T")
 
@@ -17,7 +17,12 @@ class Neo4jRepository(Repository[T]):
 
 
 def create_neo4j_repository(model: Type[T]):
-    async def _unpack(neo4j: AsyncSession = Depends(get_neo4j_session())):
-        return Neo4jRepository[model](model, neo4j)
+    from fastapi import Depends
+
+    from common.connection import get_session
+    from common.connection.neo4j import Neo4jConnection
+
+    async def _unpack(neo4j=Depends(get_session(Neo4jConnection))):
+        return Neo4jRepository(model=model, neo4j=neo4j)
 
     return _unpack

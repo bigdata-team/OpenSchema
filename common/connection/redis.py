@@ -1,6 +1,8 @@
 import os
-from ._base import unpack, Connection, AsyncConnection, Registry
+
 from common.util.hash import sha1
+
+from ._base import AsyncConnection, Connection, Registry, unpack
 
 
 class RedisConnection(Connection):
@@ -18,7 +20,9 @@ class RedisConnection(Connection):
         self.port = port
         self.password = password
         self.db = db
-        self.key = key or f"sync.redis.{self.host}.{self.port}.{self.password}.{self.db}"
+        self.key = (
+            key or f"sync.redis.{self.host}.{self.port}.{self.password}.{self.db}"
+        )
 
         if not Registry.has(self.key):
             session = redis.from_url(self.uri)
@@ -51,7 +55,9 @@ class AsyncRedisConnection(AsyncConnection):
         self.port = port
         self.password = password
         self.db = db
-        self.key = key or f"async.redis.{self.host}.{self.port}.{self.password}.{self.db}"
+        self.key = (
+            key or f"async.redis.{self.host}.{self.port}.{self.password}.{self.db}"
+        )
 
         if not Registry.has(self.key):
             session = redis.asyncio.from_url(self.uri)

@@ -5,6 +5,7 @@ from uuid import uuid4
 
 import httpx
 from celery import chain, signature
+from common.models.http import DataResponseModel, create_response
 from fastapi import BackgroundTasks, FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
@@ -12,14 +13,17 @@ from models.http import *
 from models.mongo import *
 from models.prompt import Topics
 from openai import AsyncOpenAI
-from utils import (extract_text_from_docx, extract_text_from_pdf,
-                   extract_text_from_pptx, extract_text_from_txt)
+from utils import (
+    extract_text_from_docx,
+    extract_text_from_pdf,
+    extract_text_from_pptx,
+    extract_text_from_txt,
+)
 
 from common.connection.celery import get_client
 from common.connection.util.util import stringify
 from common.lifespan import compose, kafka, mongo, neo4j, postgres
 from common.middleware import *
-from common.models.http import DataResponseModel, create_response
 
 SERVICE_ID = os.getenv("SERVICE_ID")
 SERVICE_NAME = os.getenv("SERVICE_NAME")

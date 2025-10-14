@@ -1,10 +1,10 @@
+import asyncio
 import os
 
 from fastapi import FastAPI
-import asyncio
-from starlette.concurrency import run_in_threadpool
 from fastapi.openapi.utils import get_openapi
 from router import private_router, public_router
+from starlette.concurrency import run_in_threadpool
 
 from common.middleware import CorrelationIdMiddleware
 

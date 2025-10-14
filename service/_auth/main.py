@@ -1,6 +1,9 @@
 import os
 import random
 
+from common.jwt import jwt
+from common.models.event import create_event
+from common.models.http import DataResponseModel, create_response
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
@@ -8,13 +11,9 @@ from models.db import *
 from models.http import *
 from sqlalchemy import text
 
-from common.connection.util.util import (get_random_name, hash_password,
-                                         verify_password)
-from common.jwt import jwt
+from common.connection.util.util import get_random_name, hash_password, verify_password
 from common.lifespan import compose, kafka, postgres, redis
 from common.middleware import *
-from common.models.event import create_event
-from common.models.http import DataResponseModel, create_response
 
 app = FastAPI(
     root_path="/api/v1/auth",

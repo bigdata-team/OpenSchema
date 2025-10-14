@@ -1,19 +1,14 @@
 from datetime import datetime
 from typing import Type, TypeVar
 
-from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorCollection, AsyncIOMotorDatabase
-from pydantic import BaseModel
 
 from common.config.const import SERVICE_DB_SCHEMA
-from common.lifespan import get_crid
-from common.lifespan.kafka import get_kafka_session
-from common.lifespan.mongo import get_mongo_session
+from common.model.mongo import BaseDocument
+from common.repository import Repository
 from common.repository.kafka import KafkaMixin
 
-from .repository import Repository
-
-T = TypeVar("T", bound=BaseModel)
+T = TypeVar("T", bound=BaseDocument)
 
 
 class MongoRepository(Repository[T]):
@@ -68,7 +63,8 @@ class KafkaMongoRepository(MongoRepository[T], KafkaMixin):
 
     async def create(self, obj: T) -> T:
         obj = await MongoRepository.create(self, obj)
-        print(await self.publish_event(payload=obj.model_dump(), action="created"))
+        if obj:
+            await self.publish_event(payload=obj.model_dump(), action="created")
         return obj
 
     async def get(self, id: str) -> T | None:
@@ -91,8 +87,13 @@ class KafkaMongoRepository(MongoRepository[T], KafkaMixin):
 
 
 def create_mongo_repo(model: Type[T]) -> callable:
+    from fastapi import Depends
+
+    from common.connection import get_session
+    from common.connection.mongo import MongoConnection
+
     def _get_repo(
-        mongo=Depends(get_mongo_session()),
+        mongo=Depends(get_session(MongoConnection)),
     ) -> MongoRepository[T]:
         return MongoRepository(model=model, mongo=mongo)
 
@@ -100,9 +101,16 @@ def create_mongo_repo(model: Type[T]) -> callable:
 
 
 def create_kafka_mongo_repo(model: Type[T]) -> callable:
+    from fastapi import Depends
+
+    from common.connection import get_session
+    from common.connection.kafka import KafkaConnection
+    from common.connection.mongo import MongoConnection
+    from common.lifespan import get_crid
+
     def _get_repo(
-        mongo=Depends(get_mongo_session()),
-        kafka=Depends(get_kafka_session()),
+        mongo=Depends(get_session(MongoConnection)),
+        kafka=Depends(get_session(KafkaConnection)),
         crid=Depends(get_crid()),
     ) -> KafkaMongoRepository[T]:
         return KafkaMongoRepository(model=model, mongo=mongo, kafka=kafka, crid=crid)

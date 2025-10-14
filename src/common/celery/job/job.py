@@ -1,8 +1,8 @@
-from common.celery.worker import worker
+import time
 
 from celery.utils.log import get_task_logger
 
-import time
+from common.celery.worker import worker
 
 
 @worker.task

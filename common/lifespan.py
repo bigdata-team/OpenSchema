@@ -1,7 +1,8 @@
-from fastapi import FastAPI
 import asyncio
-import uuid
 import time
+import uuid
+
+from fastapi import FastAPI
 
 
 class Runner:

@@ -1,9 +1,8 @@
 from typing import Generic, TypeVar
 from uuid import uuid4
 
-from pydantic import Field
-
 from common.models.mongo import Base
+from pydantic import Field
 
 
 class PageObject(Base):

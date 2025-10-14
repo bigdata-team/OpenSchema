@@ -2,8 +2,8 @@ import logging
 from logging.config import dictConfig
 from typing import Any, Dict
 
-from common.model.log import Log
 from common.config.const import LOG_LEVEL, SERVICE_NAME
+from common.model.log import Log
 
 DEFAULT_LOGGING_CONFIG: Dict[str, Any] = {
     "version": 1,
