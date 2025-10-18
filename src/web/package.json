@@ -1,0 +1,19 @@
+{
+  "name": "mf",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "pnpm -r run dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.18.3",
+  "devDependencies": {
+    "@module-federation/vite": "^1.8.1"
+  },
+  "dependencies": {
+    "zustand": "^5.0.8"
+  }
+}
