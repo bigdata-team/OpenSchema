@@ -1,5 +1,10 @@
 .env*
 !.env.example*
+.DS_Store
+
+# for web by zhsyoo
+.__mf__temp
+environment.ts
 
 # Created by https://www.toptal.com/developers/gitignore/api/go,python,node
 # Edit at https://www.toptal.com/developers/gitignore?templates=go,python,node
