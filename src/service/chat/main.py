@@ -1,22 +1,21 @@
-import os, json, httpx
+import json, httpx
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
-from fastapi.responses import StreamingResponse
 from router import private_router, public_router
 from starlette.middleware.cors import CORSMiddleware
 
-from common.config import PROJECT_NAME, SERVICE_API_VERSION, SERVICE_NAME
+from common.config import PROJECT_NAME, SERVICE_VERSION, SERVICE_NAME
 from common.connection.kafka import KafkaConnection
 from common.connection.sql import PostgresConnection
 from common.lifespan import compose
 from common.middleware import CorrelationIdMiddleware
-from dotenv import load_dotenv
-from openai import AsyncOpenAI
-from model.chat import *
+from model.sql.history import History
 
-OPEN_ROUTER_BASE_URL = os.environ.get("OPEN_ROUTER_BASE_URL")
-OPEN_ROUTER_API_KEY = os.environ.get("OPEN_ROUTER_API_KEY")
-client = AsyncOpenAI()
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+OPENROUTER_API_KEY = (
+    "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"
+)
+
 
 pg = PostgresConnection()
 kafka = KafkaConnection()
@@ -25,8 +24,8 @@ lifespan = compose(PostgresConnection, KafkaConnection)
 
 app = FastAPI(
     title=PROJECT_NAME,
-    version=SERVICE_API_VERSION,
-    root_path=f"/api/{SERVICE_API_VERSION}/{SERVICE_NAME}",
+    version=SERVICE_VERSION,
+    root_path=f"/api/{SERVICE_VERSION}/{SERVICE_NAME}",
     lifespan=lifespan,
 )
 
@@ -43,70 +42,75 @@ app.include_router(public_router, prefix="")
 app.include_router(private_router, prefix="")
 
 
-def custom_openapi():
-    if app.openapi_schema:
-        return app.openapi_schema
-    openapi_schema = get_openapi(
-        title=app.title,
-        version=app.version,
-        description=app.description,
-        routes=app.routes,
+#####
+from fastapi import Request, BackgroundTasks
+from fastapi.responses import Response, StreamingResponse
+import json
+
+
+def stream_parser(content: str) -> list:
+    chunks = []
+    for chunk in content.split("\n\n"):
+        if chunk.startswith("data: "):
+            chunk = chunk.removeprefix("data: ").strip()
+            if chunk != "[DONE]":
+                chunks.append(json.loads(chunk))
+    return chunks
+
+
+def nonstream_parser(content: str) -> dict:
+    return json.loads(content)
+
+
+@app.post("/completions")
+async def chat_proxy(request: Request, tasks: BackgroundTasks):
+    url = f"{OPENROUTER_BASE_URL}/chat/completions"
+    headers = {"Authorization": f"Bearer {OPENROUTER_API_KEY}"}
+    body = await request.json()
+
+    client = httpx.AsyncClient(timeout=600)
+    req = client.build_request(
+        "POST",
+        url,
+        headers=headers,
+        json=body,
     )
-    server_url = app.root_path
-    openapi_schema["servers"] = [{"url": server_url}]
-    components = openapi_schema.setdefault("components", {})
-    security_schemes = components.setdefault("securitySchemes", {})
-    security_schemes["BearerAuth"] = {
-        "type": "http",
-        "scheme": "bearer",
-        "bearerFormat": "JWT",
-        "description": "Use jwt access token for authorization",
-    }
-    openapi_schema["security"] = [{"BearerAuth": []}]
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
+    res = await client.send(req, stream=True)
 
-app.openapi = custom_openapi
+    content_type = res.headers.get("content-type", "")
+    status = res.status_code
 
-@app.post("/chat")
-async def chat(body: ChatRequest):
-    url = f"{OPEN_ROUTER_BASE_URL}/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {OPEN_ROUTER_API_KEY}",
-        "Content-Type": "application/json"
-    }
-    data = {
-        "model": body.model_name,
-        "messages": [
-            {"role": "user", "content": body.question},
-        ],
-        "temperature": body.temperature,
-        "top_p": body.top_p,
-        "top_k": body.top_k,
-        "stream": body.stream
-    }
-    
-    if body.stream:
-        async def stream_generator(url: str, headers: dict, data: dict):
-            buffer = []
-            async with httpx.AsyncClient(timeout=60) as client:
-                async with client.stream("POST", url, headers=headers, json=data) as response:
-                    async for line in response.aiter_lines():
-                        if line.startswith("data: "):
-                            b = line.removeprefix("data: ")
-                            if not b.strip() == "[DONE]":
-                                buffer.append(b)                
-                            yield line
-                            
-            buffer = [json.loads(b) for b in buffer]
-            buffer = [item["choices"][0]["delta"]["content"] for item in buffer if "choices" in item]
-            asnwer_text = "".join(buffer)
-            
-        return StreamingResponse(stream_generator(url=url, data=data), media_type="text/event-stream")
-    else:
-        pass
-    
-if __name__ == "__main__":
-    import uvicorn
+    if content_type.startswith("text/event-stream"):
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+        async def stream_generator():
+            accumulated_text = ""
+            try:
+                async for b in res.aiter_bytes():
+                    accumulated_text += b.decode("utf-8", errors="ignore")
+                    yield b
+            finally:
+                tasks.add_task(stream_parser, content=accumulated_text)
+                await res.aclose()
+                await client.aclose()
+
+        return StreamingResponse(
+            stream_generator(),
+            status_code=status,
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",
+                "Connection": "keep-alive",
+            },
+        )
+
+    content = await res.aread()
+    tasks.add_task(nonstream_parser, content=content.decode("utf-8"))
+    response = Response(
+        content=content,
+        status_code=status,
+        media_type=content_type or "application/json",
+    )
+    await res.aclose()
+    await client.aclose()
+    return response

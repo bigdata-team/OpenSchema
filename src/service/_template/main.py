@@ -3,13 +3,13 @@ from fastapi.openapi.utils import get_openapi
 from router import private_router, public_router
 from starlette.middleware.cors import CORSMiddleware
 
-from common.config import PROJECT_NAME, SERVICE_API_VERSION, SERVICE_NAME
+from common.config import PROJECT_NAME, SERVICE_VERSION, SERVICE_NAME
 from common.middleware import CorrelationIdMiddleware
 
 app = FastAPI(
     title=PROJECT_NAME,
-    version=SERVICE_API_VERSION,
-    root_path=f"/api/{SERVICE_API_VERSION}/{SERVICE_NAME}",
+    version=SERVICE_VERSION,
+    root_path=f"/api/{SERVICE_VERSION}/{SERVICE_NAME}",
 )
 
 app.add_middleware(CorrelationIdMiddleware)
