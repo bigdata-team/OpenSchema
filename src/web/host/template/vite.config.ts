@@ -40,7 +40,7 @@ export default defineConfig(({ /* command, */ mode }) => {
 					remote: {
 						type: 'module',
 						name: 'remote',
-						entry: `${selfEnv.VITE_APP_OPENSCHEMA_UI_URL}/api/v1/remote-template/remoteEntry.js`,
+						entry: `${selfEnv.VITE_APP_OPENSCHEMA_UI_URL}/ui/v1/remote-template/remoteEntry.js`,
 						entryGlobalName: 'remote',
 						shareScope: 'default',
 					},

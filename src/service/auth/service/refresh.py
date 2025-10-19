@@ -2,7 +2,7 @@ from fastapi import Depends, Request
 from repository.redis.jwt import JwtRepository
 from service.login import LoginService
 
-from common.config import JWT_REFRESH_TOKEN_TTL, SERVICE_API_VERSION, SERVICE_NAME
+from common.config import JWT_REFRESH_TOKEN_TTL, SERVICE_VERSION, SERVICE_NAME
 from common.model.http import create_response
 from common.model.jwt import RefreshTokenPayload
 from common.util.jwt import verify_token

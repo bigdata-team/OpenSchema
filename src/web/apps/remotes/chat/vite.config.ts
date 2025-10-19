@@ -6,18 +6,18 @@ import path from "path";
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "");
+  const env = loadEnv(mode, process.cwd());//, "");
 
   const SERVICE_TYPE = env.VITE_SERVICE_TYPE ?? "ui";
   const SERVICE_VERSION = env.VITE_SERVICE_VERSION ?? "v1";
   const SERVICE_NAME = env.VITE_SERVICE_NAME ?? "remote";
 
-  const BASE_PATH = `/${SERVICE_TYPE}/${SERVICE_VERSION}/${SERVICE_NAME}`;
+  const BASE_PATH = `${SERVICE_TYPE}/${SERVICE_VERSION}/${SERVICE_NAME}`;
 
   const hardPort = 2001;
 
   return {
-    base: BASE_PATH,
+    // TODO base: BASE_PATH,
     server: {
       port: hardPort,
       hmr: {
@@ -29,13 +29,14 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       target: "chrome89",
+      assetsDir: BASE_PATH
     },
     plugins: [
       react(),
       tailwindcss(),
       federation({
         name: SERVICE_NAME,
-        filename: "remoteEntry.js",
+        filename: `${BASE_PATH}/remoteEntry.js`,
         exposes: {
           "./store": "./src/store/index.ts",
           "./App": "./src/App.tsx",

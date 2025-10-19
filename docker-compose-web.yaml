@@ -1,10 +1,20 @@
 services:
+  gateway:
+    build:
+      context: src/service/gateway
+      dockerfile: Dockerfile
+      args:
+        - SERVICE_DIR=hosts/multichat
+    ports:
+      - 80:80
+      - 443:443
+
   host-template:
     build:
       context: .
       dockerfile: docker/web/Dockerfile
       args:
-        - SERVICE_DIR=host/template
+        - SERVICE_DIR=hosts/template
         - VITE_APP_OPENSCHEMA_UI_URL=http://ui.openschema.io
     environment:
       - VITE_APP_TODO=TODO
@@ -14,7 +24,7 @@ services:
       context: .
       dockerfile: docker/web/Dockerfile
       args:
-        - SERVICE_DIR=remote/template
+        - SERVICE_DIR=remotes/template
     environment:
       - VITE_APP_TODO=TODO
 

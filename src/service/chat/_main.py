@@ -5,7 +5,7 @@ from fastapi.responses import StreamingResponse
 from router import private_router, public_router
 from starlette.middleware.cors import CORSMiddleware
 
-from common.config import PROJECT_NAME, SERVICE_API_VERSION, SERVICE_NAME
+from common.config import PROJECT_NAME, SERVICE_VERSION, SERVICE_NAME
 from common.connection.kafka import KafkaConnection
 from common.connection.sql import PostgresConnection
 from common.lifespan import compose
@@ -26,8 +26,8 @@ lifespan = compose(PostgresConnection, KafkaConnection)
 
 app = FastAPI(
     title=PROJECT_NAME,
-    version=SERVICE_API_VERSION,
-    root_path=f"/api/{SERVICE_API_VERSION}/{SERVICE_NAME}",
+    version=SERVICE_VERSION,
+    root_path=f"/api/{SERVICE_VERSION}/{SERVICE_NAME}",
     lifespan=lifespan,
 )
 

@@ -75,7 +75,7 @@ services:
   #   environment:
   #     - SERVICE_ID=template.service
   #     - SERVICE_NAME=template
-  #     - SERVICE_API_VERSION=v1
+  #     - SERVICE_VERSION=v1
   #     - SERVICE_DB_SCHEMA=template
   #   volumes:
   #     - ./src/service/template:/app
@@ -94,7 +94,7 @@ services:
   #   environment:
   #     - SERVICE_ID=template.service
   #     - SERVICE_NAME=template
-  #     - SERVICE_API_VERSION=v1
+  #     - SERVICE_VERSION=v1
   #     - SERVICE_DB_SCHEMA=template
   #   volumes:
   #     - ./src/service/template:/app

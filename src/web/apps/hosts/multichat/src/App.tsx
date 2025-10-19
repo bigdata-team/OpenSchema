@@ -5,7 +5,8 @@ import './index.css'
 
 import React from 'react';
 
-const RemoteApp = React.lazy(() => import('remote/App'));
+// const RemoteApp = React.lazy(() => import('remote/App'));
+const RemoteApp = React.lazy(() => import('chat/App'));
 
 
 function App() {
