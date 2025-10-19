@@ -2,7 +2,7 @@ from fastapi import Depends
 from model.http.login import LoginResponse
 from repository.sql.user import UserRepository
 
-from common.config import JWT_REFRESH_TOKEN_TTL, SERVICE_API_VERSION, SERVICE_NAME
+from common.config import JWT_REFRESH_TOKEN_TTL, SERVICE_VERSION, SERVICE_NAME
 from common.model.http import create_response
 from common.util.jwt import claim_tokens
 from common.util.password import check_password
@@ -33,7 +33,7 @@ class LoginService:
             value=refresh_token,
             httponly=True,
             secure=True,
-            path=f"/api/{SERVICE_API_VERSION}/{SERVICE_NAME}/refresh",
+            path=f"/api/{SERVICE_VERSION}/{SERVICE_NAME}/refresh",
             max_age=JWT_REFRESH_TOKEN_TTL,
         )
         return response

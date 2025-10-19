@@ -1,7 +1,8 @@
 import Counter from '@/components/Counter';
 import React from 'react';
 
-const RemoteCounter = React.lazy(() => import('remote/Counter'));
+// const RemoteCounter = React.lazy(() => import('remote/Counter'));
+const RemoteCounter = React.lazy(() => import('chat/Counter'));
 
 function Home() {
   return (

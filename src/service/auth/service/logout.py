@@ -1,7 +1,7 @@
 from fastapi import Depends, Request
 from repository.redis.jwt import JwtRepository
 
-from common.config import JWT_REFRESH_TOKEN_TTL, SERVICE_API_VERSION, SERVICE_NAME
+from common.config import JWT_REFRESH_TOKEN_TTL, SERVICE_VERSION, SERVICE_NAME
 from common.model.http import create_response
 
 
@@ -28,7 +28,7 @@ class LogoutService:
             value="",
             httponly=True,
             secure=True,
-            path=f"/api/{SERVICE_API_VERSION}/{SERVICE_NAME}/refresh",
+            path=f"/api/{SERVICE_VERSION}/{SERVICE_NAME}/refresh",
             max_age=0,
         )
         return response

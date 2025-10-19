@@ -8,16 +8,16 @@ import path from "path";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
-  const SERVICE_TYPE = env.VITE_SERVICE_TYPE ?? "ui";
-  const SERVICE_VERSION = env.VITE_SERVICE_VERSION ?? "v1";
+  // const SERVICE_TYPE = env.VITE_SERVICE_TYPE ?? "ui";
+  // const SERVICE_VERSION = env.VITE_SERVICE_VERSION ?? "v1";
   const SERVICE_NAME = env.VITE_SERVICE_NAME ?? "remote";
 
-  const BASE_PATH = `/${SERVICE_TYPE}/${SERVICE_VERSION}/${SERVICE_NAME}`;
+  // const BASE_PATH = `/${SERVICE_TYPE}/${SERVICE_VERSION}/${SERVICE_NAME}`;
 
   const hardPort = 2001;
 
   return {
-    base: BASE_PATH,
+    // TODO base: BASE_PATH,
     server: {
       port: hardPort,
       hmr: {
