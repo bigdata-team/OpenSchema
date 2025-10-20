@@ -1,47 +1,44 @@
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { federation } from "@module-federation/vite";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
-// https://vite.dev/config/
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd());//, "");
+const SERVICE_NAME = "chat";
+const SERVICE_TYPE = "ui";
+const SERVICE_VERSION = "v1";
+const SERVICE_PORT = 2001;
 
-  const SERVICE_TYPE = env.VITE_SERVICE_TYPE ?? "ui";
-  const SERVICE_VERSION = env.VITE_SERVICE_VERSION ?? "v1";
-  const SERVICE_NAME = env.VITE_SERVICE_NAME ?? "remote";
+const EXPOSES = {
+  "./store": "./src/store/index.ts",
+  "./App": "./src/App.tsx",
+  "./Counter": "./src/components/Counter.tsx",
+};
 
-  const BASE_PATH = `${SERVICE_TYPE}/${SERVICE_VERSION}/${SERVICE_NAME}`;
-
-  const hardPort = 2001;
+export default defineConfig(() => {
+  const basePath = `${SERVICE_TYPE}/${SERVICE_VERSION}/${SERVICE_NAME}`;
 
   return {
-    // TODO base: BASE_PATH,
     server: {
-      port: hardPort,
+      port: SERVICE_PORT,
       hmr: {
         protocol: "ws",
         host: "localhost",
-        clientPort: parseInt(env.HMR_PORT) ?? hardPort,
+        clientPort: SERVICE_PORT,
         path: "/__vite/ws",
       },
     },
     build: {
       target: "chrome89",
-      assetsDir: BASE_PATH
+      assetsDir: basePath,
     },
     plugins: [
       react(),
       tailwindcss(),
       federation({
         name: SERVICE_NAME,
-        filename: `${BASE_PATH}/remoteEntry.js`,
-        exposes: {
-          "./store": "./src/store/index.ts",
-          "./App": "./src/App.tsx",
-          "./Counter": "./src/components/Counter.tsx",
-        },
+        filename: `${basePath}/remoteEntry.js`,
+        exposes: EXPOSES,
         remotes: {},
         shared: ["react", "react-dom", "react-router"],
       }),

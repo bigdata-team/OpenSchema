@@ -9,24 +9,26 @@ services:
       - 80:80
       - 443:443
 
-  host-template:
+  host-multichat-ui:
     build:
       context: .
       dockerfile: docker/web/Dockerfile
       args:
-        - SERVICE_DIR=hosts/template
-        - VITE_APP_OPENSCHEMA_UI_URL=http://ui.openschema.io
-    environment:
-      - VITE_APP_TODO=TODO
+        - SERVICE_DIR=hosts/multichat
 
-  remote-template:
+  remote-auth-ui:
     build:
       context: .
       dockerfile: docker/web/Dockerfile
       args:
-        - SERVICE_DIR=remotes/template
-    environment:
-      - VITE_APP_TODO=TODO
+        - SERVICE_DIR=remotes/auth
+
+  remote-chat-ui:
+    build:
+      context: .
+      dockerfile: docker/web/Dockerfile
+      args:
+        - SERVICE_DIR=remotes/chat
 
 networks:
   shared-net:
