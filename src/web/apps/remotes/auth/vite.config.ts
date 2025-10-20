@@ -30,14 +30,15 @@ export default defineConfig(() => {
     },
     build: {
       target: "chrome89",
-      // assetsDir: basePath,
+      assetsDir: `${basePath}/assets`,
+      modulePreload: false,
     },
     plugins: [
       react(),
       tailwindcss(),
       federation({
         name: SERVICE_NAME,
-        filename: `${basePath}/remoteEntry.js`,
+        filename: `${basePath}/assets/remoteEntry.js`,
         exposes: EXPOSES,
         remotes: {},
         shared: ["react", "react-dom", "react-router"],
@@ -48,6 +49,5 @@ export default defineConfig(() => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
-    base: `/${basePath}/`,
   };
 });

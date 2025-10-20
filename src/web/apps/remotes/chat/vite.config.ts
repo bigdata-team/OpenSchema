@@ -7,7 +7,7 @@ import path from "path";
 const SERVICE_NAME = "chat";
 const SERVICE_TYPE = "ui";
 const SERVICE_VERSION = "v1";
-const SERVICE_PORT = 2000;
+const SERVICE_PORT = 2001;
 
 const EXPOSES = {
   "./store": "./src/store/index.ts",
@@ -30,14 +30,15 @@ export default defineConfig(() => {
     },
     build: {
       target: "chrome89",
-      assetsDir: basePath,
+      assetsDir: `${basePath}/assets`,
+      modulePreload: false,
     },
     plugins: [
       react(),
       tailwindcss(),
       federation({
         name: SERVICE_NAME,
-        filename: `${basePath}/remoteEntry.js`,
+        filename: `${basePath}/assets/remoteEntry.js`,
         exposes: EXPOSES,
         remotes: {},
         shared: ["react", "react-dom", "react-router"],

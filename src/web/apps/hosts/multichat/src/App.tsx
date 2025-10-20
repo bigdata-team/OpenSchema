@@ -5,8 +5,8 @@ import './index.css'
 
 import React from 'react';
 
-// const RemoteApp = React.lazy(() => import('remote/App'));
-const RemoteApp = React.lazy(() => import('chat/App'));
+const AuthApp = React.lazy(() => import('auth/App'));
+const ChatApp = React.lazy(() => import('chat/App'));
 
 
 function App() {
@@ -14,9 +14,14 @@ function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/about" element={<About />} />
-      <Route path="/remote/*" element={
+      <Route path="/auth/*" element={
         <React.Suspense fallback={<div>Loading Remote App...</div>}>
-          <RemoteApp />
+          <AuthApp />
+        </React.Suspense>
+      } />
+      <Route path="/chat/*" element={
+        <React.Suspense fallback={<div>Loading Remote App...</div>}>
+          <ChatApp />
         </React.Suspense>
       } />
     </Routes>

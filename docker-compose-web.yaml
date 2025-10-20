@@ -1,20 +1,14 @@
 services:
-  gateway:
-    build:
-      context: src/service/gateway
-      dockerfile: Dockerfile
-      args:
-        - SERVICE_DIR=hosts/multichat
-    ports:
-      - 80:80
-      - 443:443
-
-  host-multichat-ui:
+  ui-reverse-proxy:
     build:
       context: .
-      dockerfile: docker/web/Dockerfile
-      args:
-        - SERVICE_DIR=hosts/multichat
+      dockerfile: docker/nginx-ui-reverse-proxy/Dockerfile
+    ports:
+      - 80:80
+    depends_on:
+      - remote-auth-ui
+      - remote-chat-ui
+      - host-multichat-ui
 
   remote-auth-ui:
     build:
@@ -29,6 +23,13 @@ services:
       dockerfile: docker/web/Dockerfile
       args:
         - SERVICE_DIR=remotes/chat
+
+  host-multichat-ui:
+    build:
+      context: .
+      dockerfile: docker/web/Dockerfile
+      args:
+        - SERVICE_DIR=hosts/multichat
 
 networks:
   shared-net:

@@ -1,6 +1,4 @@
-#####################################################################
-# build stage
-FROM node:22.18.0-alpine AS build-stage
+FROM node:22-alpine AS build
 
 ARG BUILD_CONTEXT_PATH=src/web
 ARG SERVICE_DIR
@@ -12,20 +10,19 @@ COPY ${BUILD_CONTEXT_PATH}/pnpm-workspace.yaml ${BUILD_CONTEXT_PATH}/package.jso
 COPY ${BUILD_CONTEXT_PATH}/apps/${SERVICE_DIR}/package.json ./apps/${SERVICE_DIR}/package.json
 RUN pnpm install --frozen-lockfile --filter ./apps/${SERVICE_DIR}...
 
-
 WORKDIR /app/apps/${SERVICE_DIR}
 COPY ${BUILD_CONTEXT_PATH}/apps/${SERVICE_DIR}/. .
+
 RUN pnpm build
 
-#####################################################################
-# production stage
-FROM nginx:1.29.2-alpine AS production-stage
+FROM nginx:alpine
 
 ARG SERVICE_DIR
 
-COPY docker/web/nginx.conf /etc/nginx/
-COPY docker/web/default.conf /etc/nginx/conf.d/default.conf
-COPY --from=build-stage /app/apps/${SERVICE_DIR}/dist /usr/share/nginx/html
+COPY docker/web/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY docker/web/nginx/conf.d/ /etc/nginx/conf.d/
+COPY --from=build /app/apps/${SERVICE_DIR}/dist /usr/share/nginx/html
 
-EXPOSE 80
+EXPOSE 2000
+
 CMD ["nginx", "-g", "daemon off;"]

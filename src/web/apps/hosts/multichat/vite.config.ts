@@ -12,12 +12,12 @@ const SERVICE_PORT = 2100;
 const REMOTES = {
   auth: {
     name: "auth",
-    entry: "http://ui.openschema.io/ui/v1/auth/remoteEntry.js",
+    entry: "http://localhost/ui/v1/auth/assets/remoteEntry.js",
     type: "module",
   },
   chat: {
     name: "chat",
-    entry: "http://ui.openschema.io/ui/v1/chat/remoteEntry.js",
+    entry: "http://localhost/ui/v1/chat/assets/remoteEntry.js",
     type: "module",
   },
 };
@@ -37,14 +37,15 @@ export default defineConfig(() => {
     },
     build: {
       target: "chrome89",
-      assetsDir: basePath,
+      assetsDir: `${basePath}/assets`,
+      modulePreload: false,
     },
     plugins: [
       react(),
       tailwindcss(),
       federation({
         name: SERVICE_NAME,
-        filename: `${basePath}/remoteEntry.js`,
+        filename: `${basePath}/assets/remoteEntry.js`,
         exposes: {},
         remotes: REMOTES,
         shared: ["react", "react-dom", "react-router"],
