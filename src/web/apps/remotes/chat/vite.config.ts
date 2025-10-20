@@ -7,7 +7,7 @@ import path from "path";
 const SERVICE_NAME = "chat";
 const SERVICE_TYPE = "ui";
 const SERVICE_VERSION = "v1";
-const SERVICE_PORT = 2001;
+const SERVICE_PORT = 2000;
 
 const EXPOSES = {
   "./store": "./src/store/index.ts",

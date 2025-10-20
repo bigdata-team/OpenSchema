@@ -30,7 +30,7 @@ export default defineConfig(() => {
     },
     build: {
       target: "chrome89",
-      assetsDir: basePath,
+      // assetsDir: basePath,
     },
     plugins: [
       react(),
@@ -48,5 +48,6 @@ export default defineConfig(() => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
+    base: `/${basePath}/`,
   };
 });

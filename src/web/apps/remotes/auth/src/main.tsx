@@ -4,11 +4,7 @@ import { BrowserRouter } from "react-router";
 import './index.css'
 import App from './App.tsx'
 
-const SERVICE_TYPE = import.meta.env.VITE_SERVICE_TYPE ?? 'ui';
-const SERVICE_VERSION = import.meta.env.VITE_SERVICE_VERSION ?? 'v1';
-const SERVICE_NAME = import.meta.env.VITE_SERVICE_NAME ?? 'remote';
-
-const BASE_PATH = `/${SERVICE_TYPE}/${SERVICE_VERSION}/${SERVICE_NAME}`;
+const BASE_PATH = `/ui/v1/auth`;
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
