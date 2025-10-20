@@ -11,19 +11,35 @@ const SERVICE_PORT = 2100;
 
 const REMOTES = {
   auth: {
-    name: "auth",
     entry: "http://localhost/ui/v1/auth/assets/remoteEntry.js",
     type: "module",
   },
   chat: {
-    name: "chat",
     entry: "http://localhost/ui/v1/chat/assets/remoteEntry.js",
     type: "module",
   },
 };
 
-export default defineConfig(() => {
+const REMOTES_DEV = {
+  auth: {
+    entry: "http://localhost:2000/ui/v1/auth/assets/remoteEntry.js",
+    type: "module",
+  },
+  chat: {
+    entry: "http://localhost:2001/ui/v1/chat/assets/remoteEntry.js",
+    type: "module",
+  },
+};
+
+export default defineConfig(({ command }) => {
   const basePath = `${SERVICE_TYPE}/${SERVICE_VERSION}/${SERVICE_NAME}`;
+
+  let remotes = {};
+  if (command === "serve") {
+    remotes = REMOTES_DEV;
+  } else {
+    remotes = REMOTES;
+  }
 
   return {
     server: {
@@ -38,7 +54,7 @@ export default defineConfig(() => {
     build: {
       target: "chrome89",
       assetsDir: `${basePath}/assets`,
-      modulePreload: false,
+      // modulePreload: false,
     },
     plugins: [
       react(),
@@ -47,7 +63,7 @@ export default defineConfig(() => {
         name: SERVICE_NAME,
         filename: `${basePath}/assets/remoteEntry.js`,
         exposes: {},
-        remotes: REMOTES,
+        remotes,
         shared: ["react", "react-dom", "react-router"],
       }),
     ],
