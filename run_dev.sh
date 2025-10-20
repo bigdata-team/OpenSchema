@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# go to web folder
+# cd src/web
+#
+# cp -R src/web/remotes/template src/web/remotes/new_web_app
+# pnpm install
+#
+# go to project root
+# cd ../.. 
+#
+# run
+# ./run_dev.sh
+
 #################################################################################################
 #################################################################################################
 #################################################################################################
@@ -28,13 +40,6 @@ check_error() {
 #docker compose --env-file .env.dev -f docker-compose-infra.yaml up -d
 ###sleep 10
 
-#docker compose --env-file .env.dev -f docker-compose-web.yaml down
-#check_error
-#docker compose --env-file .env.dev -f docker-compose-web.yaml build # --no-cache
-#check_error
-#docker compose --env-file .env.dev -f docker-compose-web.yaml up -d
-#check_error
-
 #docker compose --env-file .env.dev -f docker-compose-service.yaml down
 #check_error
 #docker compose --env-file .env.dev -f docker-compose-service.yaml build # --no-cache
@@ -42,10 +47,10 @@ check_error() {
 #docker compose --env-file .env.dev -f docker-compose-service.yaml up -d
 #check_error
 
-docker compose --env-file .env.dev -f docker-compose-ui.yaml down
+docker compose --env-file .env.dev -f docker-compose-web.yaml down
 check_error
 ###### DOCKER_BUILDKIT=0 
-docker compose --env-file .env.dev -f docker-compose-ui.yaml build # --no-cache
+docker compose --env-file .env.dev -f docker-compose-web.yaml build # --no-cache
 check_error
-docker compose --env-file .env.dev -f docker-compose-ui.yaml up -d
+docker compose --env-file .env.dev -f docker-compose-web.yaml up -d
 check_error
