@@ -1,9 +1,3 @@
-/*
-declare module "remote/App";
-declare module "remote/Counter";
-declare module "remote/store";
-*/
-
-declare module "chat/App";
-declare module "chat/Counter";
-declare module "chat/store";
+declare module "template/App";
+declare module "template/Counter";
+declare module "template/store";
