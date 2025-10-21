@@ -4,26 +4,35 @@ import { federation } from "@module-federation/vite";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
-const SERVICE_NAME = "multichat";
+const SERVICE_NAME = "host-template";
 const SERVICE_TYPE = "ui";
 const SERVICE_VERSION = "v1";
 const SERVICE_PORT = 2100;
 
 const REMOTES = {
-  auth: {
-    name: "auth",
-    entry: "http://ui.openschema.io/ui/v1/auth/remoteEntry.js",
-    type: "module",
-  },
-  chat: {
-    name: "chat",
-    entry: "http://ui.openschema.io/ui/v1/chat/remoteEntry.js",
+  template: {
+    entry: "http://ui.openschema.io/ui/v1/remote-template/assets/remoteEntry.js",
     type: "module",
   },
 };
 
-export default defineConfig(() => {
+const REMOTES_DEV = {
+  template: {
+    entry: "http://localhost:2001/ui/v1/remote-template/assets/remoteEntry.js",
+    type: "module",
+  },
+};
+
+export default defineConfig(({ command, /* mode */ }) => {
   const basePath = `${SERVICE_TYPE}/${SERVICE_VERSION}/${SERVICE_NAME}`;
+  // const env = loadEnv(mode, process.cwd());//, "");
+
+  let remotes = {};
+  if (command === "serve") {
+    remotes = REMOTES_DEV;
+  } else {
+    remotes = REMOTES;
+  }
 
   return {
     server: {
@@ -37,16 +46,17 @@ export default defineConfig(() => {
     },
     build: {
       target: "chrome89",
-      assetsDir: basePath,
+      assetsDir: `${basePath}/assets`,
+      // modulePreload: false,
     },
     plugins: [
       react(),
       tailwindcss(),
       federation({
         name: SERVICE_NAME,
-        filename: `${basePath}/remoteEntry.js`,
+        filename: `${basePath}/assets/remoteEntry.js`,
         exposes: {},
-        remotes: REMOTES,
+        remotes,
         shared: ["react", "react-dom", "react-router"],
       }),
     ],

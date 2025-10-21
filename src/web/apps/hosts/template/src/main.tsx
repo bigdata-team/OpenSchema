@@ -1,20 +1,15 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from "react-router";
-import './index.css'
-import App from './App.tsx'
+import App from './App'
 
-/* TODO
-const SERVICE_TYPE = import.meta.env.VITE_SERVICE_TYPE ?? 'ui';
-const SERVICE_VERSION = import.meta.env.VITE_SERVICE_VERSION ?? 'v1';
-const SERVICE_NAME = import.meta.env.VITE_SERVICE_NAME ?? 'host';
+import '@/index.css'
 
-const BASE_PATH = `/${SERVICE_TYPE}/${SERVICE_VERSION}/${SERVICE_NAME}`;
-*/
+// const BASE_PATH = `/ui/v1/host-template`;
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {/* TODO <BrowserRouter basename={BASE_PATH}> */}
+    {/* <BrowserRouter basename={BASE_PATH}> */}
     <BrowserRouter>
       <App />
     </BrowserRouter>

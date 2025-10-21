@@ -1,3 +1,4 @@
+/*
 import React from 'react';
 import Chat from "chat/Chat";
 import SendChat from "chat/SendChat";
@@ -21,3 +22,4 @@ export default function chatCollection({
         </>
     );
 }
+*/
