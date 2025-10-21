@@ -11,35 +11,33 @@ const SERVICE_PORT = 2100;
 
 const REMOTES = {
   auth: {
-    entry: "http://localhost/ui/v1/auth/assets/remoteEntry.js",
+    name: "auth",
+    entryBuild: "http://localhost/ui/v1/auth/assets/remoteEntry.js",
+    entryDevel: "http://localhost:2000/ui/v1/auth/assets/remoteEntry.js",
     type: "module",
   },
   chat: {
-    entry: "http://localhost/ui/v1/chat/assets/remoteEntry.js",
-    type: "module",
-  },
-};
-
-const REMOTES_DEV = {
-  auth: {
-    entry: "http://localhost:2000/ui/v1/auth/assets/remoteEntry.js",
-    type: "module",
-  },
-  chat: {
-    entry: "http://localhost:2001/ui/v1/chat/assets/remoteEntry.js",
+    name: "chat",
+    entryBuild: "http://localhost/ui/v1/chat/assets/remoteEntry.js",
+    entryDevel: "http://localhost:2001/ui/v1/chat/assets/remoteEntry.js",
     type: "module",
   },
 };
 
 export default defineConfig(({ command }) => {
   const basePath = `${SERVICE_TYPE}/${SERVICE_VERSION}/${SERVICE_NAME}`;
+  const isDev = command === "serve";
 
-  let remotes = {};
-  if (command === "serve") {
-    remotes = REMOTES_DEV;
-  } else {
-    remotes = REMOTES;
-  }
+  const remotes = Object.fromEntries(
+    Object.entries(REMOTES).map(([name, config]) => [
+      name,
+      {
+        name: config.name,
+        entry: isDev ? config.entryDevel : config.entryBuild,
+        type: config.type,
+      },
+    ])
+  );
 
   return {
     server: {
