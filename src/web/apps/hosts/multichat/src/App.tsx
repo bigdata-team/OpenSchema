@@ -8,7 +8,6 @@ import React from 'react';
 const AuthApp = React.lazy(() => import('auth/App'));
 const ChatApp = React.lazy(() => import('chat/App'));
 
-
 function App() {
   return (
     <Routes>

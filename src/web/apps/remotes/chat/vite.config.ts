@@ -13,6 +13,8 @@ const EXPOSES = {
   "./store": "./src/store/index.ts",
   "./App": "./src/App.tsx",
   "./Counter": "./src/components/Counter.tsx",
+  "./Chat": "./src/components/Chat.tsx",
+  "./SendChat": "./src/components/SendChat.tsx",
 };
 
 export default defineConfig(() => {
