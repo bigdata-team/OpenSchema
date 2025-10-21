@@ -49,16 +49,16 @@ check_error() {
 
 docker compose --env-file .env.dev -f docker-compose-web.yaml down
 check_error
-###### DOCKER_BUILDKIT=0 
+####### DOCKER_BUILDKIT=0 
 docker compose --env-file .env.dev -f docker-compose-web.yaml build # --no-cache
 check_error
 docker compose --env-file .env.dev -f docker-compose-web.yaml up -d
 check_error
 
-#docker compose --env-file .env.dev -f docker-compose-web-template.yaml down
-#check_error
+docker compose --env-file .env.dev -f docker-compose-web-template.yaml down
+check_error
 ###### DOCKER_BUILDKIT=0 
-#docker compose --env-file .env.dev -f docker-compose-web-template.yaml build # --no-cache
-#check_error
-#docker compose --env-file .env.dev -f docker-compose-web-template.yaml up -d
-#check_error
+docker compose --env-file .env.dev -f docker-compose-web-template.yaml build # --no-cache
+check_error
+docker compose --env-file .env.dev -f docker-compose-web-template.yaml up -d
+check_error

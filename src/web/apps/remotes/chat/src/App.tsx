@@ -4,7 +4,8 @@ import About from './pages/About';
 import ChatTest from './pages/ChatTest';
 
 // css import is required here for tailwind to work on host
-import './index.css';
+// import './index.css';
+import "@/index.css";
 
 function App() {
   return (

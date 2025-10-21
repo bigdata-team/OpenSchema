@@ -16,7 +16,8 @@ services:
       - 5432:5432
 
   mongo:
-    image: mongo
+    # image: mongo
+    image: mongo:4.4.29 # for ktcloud
     environment:
       MONGO_INITDB_DATABASE: ${MONGO_DB}
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
