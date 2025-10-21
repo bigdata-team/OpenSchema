@@ -6,7 +6,8 @@ import './index.css'
 import React from 'react';
 
 const AuthApp = React.lazy(() => import('auth/App'));
-const ChatApp = React.lazy(() => import('chat/App'));
+const ChatApp = React.lazy(() => import('chat/Chat'));
+const SendChat = React.lazy(() => import('chat/SendChat'));
 
 function App() {
   return (
@@ -17,10 +18,11 @@ function App() {
         <React.Suspense fallback={<div>Loading Remote App...</div>}>
           <AuthApp />
         </React.Suspense>
-      } />
+      } /> 
       <Route path="/chat/*" element={
         <React.Suspense fallback={<div>Loading Remote App...</div>}>
           <ChatApp />
+          <SendChat />
         </React.Suspense>
       } />
     </Routes>
