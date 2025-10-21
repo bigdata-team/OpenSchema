@@ -1,4 +1,5 @@
 import ReactMarkdown from "react-markdown";
+import "@/index.css";
 
 export interface Chatting {
     model: string;
