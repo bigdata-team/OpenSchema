@@ -1,4 +1,4 @@
-import { useCounter } from 'template/store'
+import { useCounter } from 'remote/store'
 
 type CounterProps = {
   useCounterHook?: typeof useCounter;

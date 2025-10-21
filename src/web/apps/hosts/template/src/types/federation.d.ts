@@ -1,3 +1,3 @@
-declare module "template/App";
-declare module "template/Counter";
-declare module "template/store";
+declare module "remote/App";
+declare module "remote/Counter";
+declare module "remote/store";

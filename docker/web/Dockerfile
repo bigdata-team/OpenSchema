@@ -2,6 +2,7 @@ FROM node:22-alpine AS build
 
 ARG BUILD_CONTEXT_PATH=src/web
 ARG SERVICE_DIR
+ARG VITE_UI_GATEWAY_URL
 
 RUN corepack enable
 
