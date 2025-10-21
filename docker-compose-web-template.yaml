@@ -14,6 +14,7 @@ services:
       dockerfile: docker/web/Dockerfile
       args:
         - SERVICE_DIR=hosts/template
+        - VITE_UI_GATEWAY_URL=http://ui.openschema.io
 
   # template for adding new remote ui services
   remote-template-ui:
