@@ -5,11 +5,12 @@ import App from './App'
 
 import '@/index.css'
 
-const BASE_PATH = `/ui/v1/multichat`;
+//const BASE_PATH = `/ui/v1/multichat`;
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter basename={BASE_PATH}>
+    {/* <BrowserRouter basename={BASE_PATH}> */}
+    <BrowserRouter>
       <App />
     </BrowserRouter>
   </StrictMode>,

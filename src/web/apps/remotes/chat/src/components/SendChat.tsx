@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ChangeEvent, KeyboardEvent } from "react";
+import "@/index.css";
 
 
 export async function processChat(str: string,targetID:string) {

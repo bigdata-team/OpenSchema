@@ -12,13 +12,13 @@ const SERVICE_PORT = 2100;
 const REMOTES = {
   auth: {
     name: "auth",
-    entryBuild: "http://localhost/ui/v1/auth/assets/remoteEntry.js",
+    entryBuild: "https://openschema-ui.elpai.org/ui/v1/auth/assets/remoteEntry.js",
     entryDevel: "http://localhost:2000/ui/v1/auth/assets/remoteEntry.js",
     type: "module",
   },
   chat: {
     name: "chat",
-    entryBuild: "http://localhost/ui/v1/chat/assets/remoteEntry.js",
+    entryBuild: "https://openschema-ui.elpai.org/ui/v1/chat/assets/remoteEntry.js",
     entryDevel: "http://localhost:2001/ui/v1/chat/assets/remoteEntry.js",
     type: "module",
   },

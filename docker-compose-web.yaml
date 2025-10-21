@@ -1,14 +1,14 @@
 services:
-  ui-reverse-proxy:
-    build:
-      context: .
-      dockerfile: docker/nginx-ui-reverse-proxy/Dockerfile
-    ports:
-      - 80:80
-    depends_on:
-      - remote-auth-ui
-      - remote-chat-ui
-      - host-multichat-ui
+  #ui-reverse-proxy:
+  #  build:
+  #    context: .
+  #    dockerfile: docker/nginx-ui-reverse-proxy/Dockerfile
+  #  ports:
+  #    - 80:80
+  #  depends_on:
+  #    - remote-auth-ui
+  #    - remote-chat-ui
+  #    - host-multichat-ui
 
   remote-auth-ui:
     build:

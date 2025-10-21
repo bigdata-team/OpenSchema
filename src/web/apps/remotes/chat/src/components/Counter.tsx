@@ -1,4 +1,5 @@
 import useCounter from '@/store/counter';
+import "@/index.css";
 
 
 type CounterProps = {
