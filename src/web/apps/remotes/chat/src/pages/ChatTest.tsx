@@ -8,7 +8,7 @@ function ChatTest() {
   return (
     <>
       <Chat chatContentID={"abcd"}/>
-      <SendChat />
+      <SendChat targetID={["abcd"]}/>
     </>
   )
 }

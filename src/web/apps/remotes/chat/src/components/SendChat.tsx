@@ -13,7 +13,7 @@ export async function processChat(str: string,targetID:string) {
         method: `POST`,
         headers: {
             "content-type": `application/json`,
-            Authorization:"Bearer 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"
+            Authorization:"Bearer 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"
         },
         body: JSON.stringify({
             model:"gpt-4o",
@@ -29,7 +29,10 @@ export async function processChat(str: string,targetID:string) {
 
     const reader = response.body?.getReader();
     if(!reader)
+    {
+        targetDiv.textContent = `error at ${targetID} #1`;
         return "error";
+    }
     const decoder = new TextDecoder("utf-8");
     let responseChat = "";
     let buffer = "";
@@ -67,7 +70,7 @@ export async function processChat(str: string,targetID:string) {
                     //process.stdout.write(delta);
                 }
             } catch (err) {
-                // JSON 파싱 실패는 무시 (중간에 keep-alive 등의 노이즈 가능)
+                responseChat += `error at ${targetID} #2`;
             }
         }
         
@@ -76,14 +79,17 @@ export async function processChat(str: string,targetID:string) {
         targetDiv.textContent = responseChat;
     }
 
+    if(responseChat == "")
+        targetDiv.textContent = `no response at ${targetID}`;
+
     //console.log(responseChat);
     return responseChat;
 }
 
-export let targetID:Array<string>;
-
 export default function SendChat({
+    targetID
 }:{
+    targetID:Array<string>;
 })
 {
 
@@ -139,7 +145,6 @@ export default function SendChat({
                     data-sentry-element="AutoResizeTextarea"
                     data-sentry-source-file="evaluation-form.tsx"
                     style={{ height: "48px !important" }}
-                    defaultValue={""}
                     onChange={handleMessageInput}
                     onKeyDown={processKeyboardInput} 
                 />

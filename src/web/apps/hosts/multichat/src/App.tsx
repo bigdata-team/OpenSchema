@@ -21,8 +21,9 @@ function App() {
       } /> 
       <Route path="/chat/*" element={
         <React.Suspense fallback={<div>Loading Remote App...</div>}>
-          <ChatApp />
-          <SendChat />
+          <ChatApp chatContentID="abcd"/>
+          <ChatApp chatContentID="bcde"/>
+          <SendChat targetID={["abcd","bcde"]}/>
         </React.Suspense>
       } />
     </Routes>

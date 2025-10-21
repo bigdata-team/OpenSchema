@@ -40,9 +40,9 @@ export default function Chat({
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
                             className="lucide lucide-handshake absolute opacity-0 transition-opacity duration-300"
                             data-sentry-element="Handshake"
                             data-sentry-source-file="vote-hover-icon.tsx"
@@ -60,9 +60,9 @@ export default function Chat({
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
                             className="lucide lucide-trophy absolute opacity-0 transition-opacity duration-300"
                             data-sentry-element="Trophy"
                             data-sentry-source-file="vote-hover-icon.tsx"
@@ -81,9 +81,9 @@ export default function Chat({
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
                             className="lucide lucide-thumbs-down absolute opacity-0 transition-opacity duration-300"
                             data-sentry-element="ThumbsDown"
                             data-sentry-source-file="vote-hover-icon.tsx"
@@ -112,7 +112,7 @@ export default function Chat({
                             data-sentry-element="TooltipTrigger"
                             data-sentry-source-file="basic-tooltip.tsx"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-refresh-cw">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-refresh-cw">
                                 <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
                                 <path d="M21 3v5h-5"></path>
                                 <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
@@ -134,9 +134,9 @@ export default function Chat({
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
                                 className="lucide lucide-check text-interactive-positive absolute left-1.5 top-1.5 rotate-90 opacity-0 transition-all duration-300"
                                 data-sentry-element="Check"
                                 data-sentry-source-file="copy-button.tsx"
@@ -150,9 +150,9 @@ export default function Chat({
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
                                 className="lucide lucide-copy opacity-100 transition-opacity duration-300"
                                 data-sentry-element="Copy"
                                 data-sentry-source-file="copy-button.tsx"
@@ -168,7 +168,7 @@ export default function Chat({
                             data-sentry-element="TooltipTrigger"
                             data-sentry-source-file="basic-tooltip.tsx"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-maximize2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-maximize2">
                                 <polyline points="15 3 21 3 21 9"></polyline>
                                 <polyline points="9 21 3 21 3 15"></polyline>
                                 <line x1="21" x2="14" y1="3" y2="10"></line>
@@ -178,7 +178,7 @@ export default function Chat({
                     </div>
                 </div>
                 <div className="no-scrollbar relative flex w-full flex-1 flex-col overflow-x-auto transition-[max-height] duration-300 max-h-[max(50svh,350px)] overflow-y-auto border-border-faint border-t">
-                    {chatting.message.map(chat => { if (chat.role == "assistant") return (
+                    {chatting.message.map((chat,i) => { if (chat.role == "assistant") return (
                     <div className="min-w-0 p-3">
                         <div id={chatContentID} className="prose prose-sm prose-pre:bg-transparent prose-pre:p-0 text-wrap break-words">
                             <ReactMarkdown>
