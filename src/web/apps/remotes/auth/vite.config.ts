@@ -31,7 +31,8 @@ export default defineConfig(() => {
     build: {
       target: "chrome89",
       assetsDir: `${basePath}/assets`,
-      modulePreload: false,
+      // outDir: basePath,
+      // modulePreload: false,
     },
     plugins: [
       react(),
