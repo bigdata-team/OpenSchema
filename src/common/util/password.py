@@ -6,7 +6,7 @@ def hash_password(password: str, cost: int = 12) -> str:
     return hashed.decode()
 
 
-def check_password(password: str, hashed_password: str) -> bool:
+def verify_password(password: str, hashed_password: str) -> bool:
     import bcrypt
 
     try:

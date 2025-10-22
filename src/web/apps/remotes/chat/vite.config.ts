@@ -4,24 +4,31 @@ import { federation } from "@module-federation/vite";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
-const SERVICE_NAME = "chat";
-const SERVICE_TYPE = "ui";
-const SERVICE_VERSION = "v1";
-const SERVICE_PORT = 2001;
-
-const EXPOSES = {
-  "./store": "./src/store/index.ts",
-  "./App": "./src/App.tsx",
-  "./Counter": "./src/components/Counter.tsx",
-  "./Chat": "./src/components/Chat.tsx",
-  "./SendChat": "./src/components/SendChat.tsx",
-};
-
 export default defineConfig(({ mode }) => {
-  const basePath = `${SERVICE_TYPE}/${SERVICE_VERSION}/${SERVICE_NAME}`;
-  const env = loadEnv(mode, process.cwd());//, "");
-  const UI_GATEWAY_URL = env.VITE_UI_GATEWAY_URL || "http://localhost.TODO";
+  // const isDev = mode === "serve";
+  const env = loadEnv(mode, process.cwd());
 
+  ///////////////////////////////
+  //////// Configuration ////////
+  ///////////////////////////////
+
+  const SERVICE_NAME = "chat";
+  const SERVICE_TYPE = "ui";
+  const SERVICE_VERSION = "v1";
+  const SERVICE_PORT = 2001;
+  const UI_GATEWAY_URL = env.VITE_UI_GATEWAY_URL ?? "http://localhost";
+
+  const EXPOSES = {
+    "./store": "./src/store/index.ts",
+    "./App": "./src/App.tsx",
+    "./Counter": "./src/components/Counter.tsx",
+    "./Chat": "./src/components/Chat.tsx",
+    "./SendChat": "./src/components/SendChat.tsx",
+  };
+
+  ///////////////////////////////
+
+  const basePath = `${SERVICE_TYPE}/${SERVICE_VERSION}/${SERVICE_NAME}`;
   return {
     base: UI_GATEWAY_URL,
     server: {
@@ -36,7 +43,6 @@ export default defineConfig(({ mode }) => {
     build: {
       target: "chrome89",
       assetsDir: `${basePath}/assets`,
-      // modulePreload: false,
     },
     plugins: [
       react(),

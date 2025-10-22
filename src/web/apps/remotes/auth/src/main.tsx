@@ -5,7 +5,7 @@ import App from './App'
 
 import '@/index.css'
 
-const BASE_PATH = `/ui/v1/auth`;
+const BASE_PATH = "/ui/v1/auth";
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

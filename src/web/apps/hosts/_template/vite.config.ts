@@ -12,7 +12,7 @@ export default defineConfig(({ command, mode }) => {
   //////// Configuration ////////
   ///////////////////////////////
 
-  const SERVICE_NAME = "multichat";
+  const SERVICE_NAME = "host_template";
   const SERVICE_TYPE = "ui";
   const SERVICE_VERSION = "v1";
   const SERVICE_PORT = 2100;

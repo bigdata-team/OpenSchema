@@ -1,0 +1,112 @@
+services:
+  api-reverse-proxy:
+    build:
+      context: docker/gateway
+    ports:
+      - 80:80
+    depends_on:
+      - mcp
+      - chat
+      - auth
+
+  mcp:
+    build:
+      context: .
+      dockerfile: docker/python/Dockerfile.dev
+      args:
+        - SERVICE_DIR=mcp
+    env_file:
+      - .env.dev
+    command: ['python', 'main.py']
+    environment:
+      - SERVICE_TYPE=api
+      - SERVICE_NAME=mcp
+      - SERVICE_VERSION=v1
+      - SERVICE_ID=mcp.api
+      - SERVICE_DB_SCHEMA=mcp
+    volumes:
+      - ./src/service/mcp:/app
+      - ./src/common:/app/common
+
+  chat:
+    build:
+      context: .
+      dockerfile: docker/python/Dockerfile.dev
+      args:
+        - SERVICE_DIR=chat
+    env_file:
+      - .env.dev
+    environment:
+      - SERVICE_TYPE=api
+      - SERVICE_NAME=chat
+      - SERVICE_VERSION=v1
+      - SERVICE_ID=chat.api
+      - SERVICE_DB_SCHEMA=chat
+    volumes:
+      - ./src/service/chat:/app
+      - ./src/common:/app/common
+
+  auth:
+    build:
+      context: .
+      dockerfile: docker/python/Dockerfile.dev
+      args:
+        - SERVICE_DIR=auth
+    env_file:
+      - .env.dev
+    environment:
+      - SERVICE_TYPE=api
+      - SERVICE_NAME=auth
+      - SERVICE_VERSION=v1
+      - SERVICE_ID=auth.api
+      - SERVICE_DB_SCHEMA=auth
+    volumes:
+      - ./src/service/auth:/app
+      - ./src/common:/app/common
+
+  remote-auth-ui:
+    build:
+      context: .
+      dockerfile: docker/web/Dockerfile
+      args:
+        - SERVICE_DIR=remotes/auth
+        - VITE_API_GATEWAY_URL=${VITE_API_GATEWAY_URL}
+        - VITE_UI_GATEWAY_URL=${VITE_UI_GATEWAY_URL}
+    env_file:
+      - .env.dev
+    environment:
+      - VITE_API_GATEWAY_URL=${VITE_API_GATEWAY_URL}
+      - VITE_UI_GATEWAY_URL=${VITE_UI_GATEWAY_URL}
+    
+
+  remote-chat-ui:
+    build:
+      context: .
+      dockerfile: docker/web/Dockerfile
+      args:
+        - SERVICE_DIR=remotes/chat
+        - VITE_API_GATEWAY_URL=${VITE_API_GATEWAY_URL}
+        - VITE_UI_GATEWAY_URL=${VITE_UI_GATEWAY_URL}
+    env_file:
+      - .env.dev
+    environment:
+      - VITE_API_GATEWAY_URL=${VITE_API_GATEWAY_URL}
+      - VITE_UI_GATEWAY_URL=${VITE_UI_GATEWAY_URL}
+
+  host-multichat-ui:
+    build:
+      context: .
+      dockerfile: docker/web/Dockerfile
+      args:
+        - SERVICE_DIR=hosts/multichat
+        - VITE_API_GATEWAY_URL=${VITE_API_GATEWAY_URL}
+        - VITE_UI_GATEWAY_URL=${VITE_UI_GATEWAY_URL}
+    env_file:
+      - .env.dev
+    environment:
+      - VITE_API_GATEWAY_URL=${VITE_API_GATEWAY_URL}
+      - VITE_UI_GATEWAY_URL=${VITE_UI_GATEWAY_URL}
+
+networks:
+  shared-net:
+    name: net

@@ -8,7 +8,7 @@ from starlette.middleware.cors import CORSMiddleware
 from common.config import PROJECT_NAME, SERVICE_VERSION, SERVICE_NAME
 from common.connection.kafka import KafkaConnection
 from common.connection.sql import PostgresConnection
-from common.lifespan import compose
+from common.util.lifespan import compose
 from common.middleware import CorrelationIdMiddleware
 from openai import AsyncOpenAI
 from model.chat import *

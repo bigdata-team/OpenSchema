@@ -5,7 +5,7 @@ from repository.sql.user import UserRepository
 from common.config import JWT_REFRESH_TOKEN_TTL, SERVICE_VERSION, SERVICE_NAME
 from common.model.http import create_response
 from common.util.jwt import claim_tokens
-from common.util.password import check_password
+from common.util.password import verify_password
 
 
 class LoginService:
@@ -17,7 +17,7 @@ class LoginService:
         if not user:
             return self._unauthorized()
 
-        if not check_password(password, user.hashed_password):
+        if not verify_password(password, user.hashed_password):
             return self._unauthorized()
 
         return await self.issue(user.id, detail="Login successful.")

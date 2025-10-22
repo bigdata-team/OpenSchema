@@ -4,52 +4,32 @@ import { federation } from "@module-federation/vite";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
-export default defineConfig(({ command, mode }) => {
-  const isDev = command === "serve";
+export default defineConfig(({ mode }) => {
+  // const isDev = mode === "serve";
   const env = loadEnv(mode, process.cwd());
 
   ///////////////////////////////
   //////// Configuration ////////
   ///////////////////////////////
 
-  const SERVICE_NAME = "multichat";
+  const SERVICE_NAME = "remote-template";
   const SERVICE_TYPE = "ui";
   const SERVICE_VERSION = "v1";
-  const SERVICE_PORT = 2100;
+  const SERVICE_PORT = 2000;
   const UI_GATEWAY_URL = env.VITE_UI_GATEWAY_URL ?? "http://localhost";
 
-  const REMOTES = {
-    auth: {
-      name: "auth",
-      entryBuild: `${UI_GATEWAY_URL}/ui/v1/auth/assets/remoteEntry.js`,
-      entryDevel: "http://localhost:2000/ui/v1/auth/assets/remoteEntry.js",
-      type: "module",
-    },
-    chat: {
-      name: "chat",
-      entryBuild: `${UI_GATEWAY_URL}/ui/v1/chat/assets/remoteEntry.js`,
-      entryDevel: "http://localhost:2001/ui/v1/chat/assets/remoteEntry.js",
-      type: "module",
-    },
+  const EXPOSES = {
+    "./store": "./src/store/index.ts",
+    "./App": "./src/App.tsx",
+    "./Counter": "./src/components/Counter.tsx",
   };
 
   ///////////////////////////////
 
   const basePath = `${SERVICE_TYPE}/${SERVICE_VERSION}/${SERVICE_NAME}`;
-
-  const remotes = Object.fromEntries(
-    Object.entries(REMOTES).map(([name, config]) => [
-      name,
-      {
-        name: config.name,
-        entry: isDev ? config.entryDevel : config.entryBuild,
-        type: config.type,
-      },
-    ])
-  );
-
   return {
     server: {
+      base: UI_GATEWAY_URL,
       port: SERVICE_PORT,
       hmr: {
         protocol: "ws",
@@ -68,8 +48,8 @@ export default defineConfig(({ command, mode }) => {
       federation({
         name: SERVICE_NAME,
         filename: `${basePath}/assets/remoteEntry.js`,
-        exposes: {},
-        remotes,
+        exposes: EXPOSES,
+        remotes: {},
         shared: ["react", "react-dom", "react-router"],
       }),
     ],
