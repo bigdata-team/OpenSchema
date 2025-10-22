@@ -31,34 +31,30 @@ check_error() {
 #################################################################################################
 #################################################################################################
 #################################################################################################
-#docker compose --env-file .env.dev -f docker-compose-kafka.yaml down
 #docker compose --env-file .env.dev -f docker-compose-kafka.yaml build
+#check_error
+#docker compose --env-file .env.dev -f docker-compose-kafka.yaml down
 #docker compose --env-file .env.dev -f docker-compose-kafka.yaml up -d
 
-#docker compose --env-file .env.dev -f docker-compose-infra.yaml down
 #docker compose --env-file .env.dev -f docker-compose-infra.yaml build
+#check_error
+#docker compose --env-file .env.dev -f docker-compose-infra.yaml down
 #docker compose --env-file .env.dev -f docker-compose-infra.yaml up -d
 ###sleep 10
 
-#docker compose --env-file .env.dev -f docker-compose-service.yaml down
-#check_error
 #docker compose --env-file .env.dev -f docker-compose-service.yaml build # --no-cache
 #check_error
+#docker compose --env-file .env.dev -f docker-compose-service.yaml down
 #docker compose --env-file .env.dev -f docker-compose-service.yaml up -d
-#check_error
 
-docker compose --env-file .env.dev -f docker-compose-web.yaml down
-check_error
 ####### DOCKER_BUILDKIT=0 
 docker compose --env-file .env.dev -f docker-compose-web.yaml build # --no-cache
 check_error
+docker compose --env-file .env.dev -f docker-compose-web.yaml down
 docker compose --env-file .env.dev -f docker-compose-web.yaml up -d
-check_error
 
-docker compose --env-file .env.dev -f docker-compose-web-template.yaml down
-check_error
 ###### DOCKER_BUILDKIT=0 
 docker compose --env-file .env.dev -f docker-compose-web-template.yaml build # --no-cache
 check_error
+docker compose --env-file .env.dev -f docker-compose-web-template.yaml down
 docker compose --env-file .env.dev -f docker-compose-web-template.yaml up -d
-check_error

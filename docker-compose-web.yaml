@@ -16,6 +16,7 @@ services:
       dockerfile: docker/web/Dockerfile
       args:
         - SERVICE_DIR=remotes/auth
+        - VITE_UI_GATEWAY_URL=https://openschema-ui.elpai.org
 
   remote-chat-ui:
     build:
@@ -23,6 +24,7 @@ services:
       dockerfile: docker/web/Dockerfile
       args:
         - SERVICE_DIR=remotes/chat
+        - VITE_UI_GATEWAY_URL=https://openschema-ui.elpai.org
 
   host-multichat-ui:
     build:
@@ -30,6 +32,7 @@ services:
       dockerfile: docker/web/Dockerfile
       args:
         - SERVICE_DIR=hosts/multichat
+        - VITE_UI_GATEWAY_URL=https://openschema-ui.elpai.org
 
 networks:
   shared-net:
