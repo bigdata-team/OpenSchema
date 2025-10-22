@@ -7,9 +7,11 @@ import path from "path";
 const SERVICE_NAME = "host-template";
 const SERVICE_TYPE = "ui";
 const SERVICE_VERSION = "v1";
-const SERVICE_PORT = 2100;
+const SERVICE_PORT = 3100;
 
 export default defineConfig(({ command, mode }) => {
+  const basePath = `${SERVICE_TYPE}/${SERVICE_VERSION}/${SERVICE_NAME}`;
+  const isDev = command === "serve";
   const env = loadEnv(mode, process.cwd());//, "");
 
   const UI_GATEWAY_URL = env.VITE_UI_GATEWAY_URL || "http://localhost.TODO";
@@ -21,8 +23,6 @@ export default defineConfig(({ command, mode }) => {
       type: "module",
     },
   }
-  const basePath = `${SERVICE_TYPE}/${SERVICE_VERSION}/${SERVICE_NAME}`;
-  const isDev = command === "serve";
 
   const remotes = Object.fromEntries(
     Object.entries(REMOTES).map(([name, config]) => [

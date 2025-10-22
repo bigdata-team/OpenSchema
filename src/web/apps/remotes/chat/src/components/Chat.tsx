@@ -178,7 +178,7 @@ export default function Chat({
                     </div>
                 </div>
                 <div className="no-scrollbar relative flex w-full flex-1 flex-col overflow-x-auto transition-[max-height] duration-300 max-h-[max(50svh,350px)] overflow-y-auto border-border-faint border-t">
-                    {chatting.message.map((chat,i) => { if (chat.role == "assistant") return (
+                    {chatting.message.map((chat) => { if (chat.role == "assistant") return (
                     <div className="min-w-0 p-3">
                         <div id={chatContentID} className="prose prose-sm prose-pre:bg-transparent prose-pre:p-0 text-wrap break-words">
                             <ReactMarkdown>
