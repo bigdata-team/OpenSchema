@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ChangeEvent, KeyboardEvent } from "react";
+import  Config from '@/config';
 import "@/index.css";
 
 
@@ -9,14 +10,16 @@ export async function processChat(str: string,targetID:string) {
     if(!targetDiv)
         return "error";
 
-    const response = await fetch(`https://api.openai.com/v1/chat/completions`, {
+    // const url = `https://api.openai.com/v1/chat/completions`
+    const url = `${Config.value("API_GATEWAY_URL")}/api/v1/chat/completions`;
+    const response = await fetch(url, {
         method: `POST`,
         headers: {
             "content-type": `application/json`,
-            Authorization:"Bearer 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"
+            Authorization: `Bearer ${Config.value("TEMP_ACCESS_TOKEN")}`,
         },
         body: JSON.stringify({
-            model:"gpt-4o",
+            model:"openai/gpt-4o",
             messages:[
                 {
                     role:"user",
