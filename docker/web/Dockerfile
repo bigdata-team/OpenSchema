@@ -28,8 +28,11 @@ ARG BUILD_CONTEXT_PATH=src/web
 
 COPY docker/web/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY docker/web/nginx/conf.d/ /etc/nginx/conf.d/
+COPY docker/web/nginx_entrypoint.sh /nginx_entrypoint.sh
+RUN chmod +x /nginx_entrypoint.sh
 COPY --from=build /app/${BUILD_CONTEXT_PATH}/apps/${SERVICE_DIR}/dist /usr/share/nginx/html
 
 EXPOSE 2000
 
-CMD ["nginx", "-g", "daemon off;"]
+# CMD ["nginx", "-g", "daemon off;"]
+CMD ["/nginx_entrypoint.sh"]
