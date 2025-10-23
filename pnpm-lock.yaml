@@ -18,6 +18,9 @@ importers:
       '@module-federation/vite':
         specifier: ^1.8.1
         version: 1.8.1(rollup@4.52.5)
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
 
   src/web/apps/hosts/multichat:
     dependencies:
