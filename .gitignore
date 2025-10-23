@@ -1,6 +1,5 @@
 .env*
 !.env.example*
-.DS_Store
 
 # for web by zhsyoo
 .__mf__temp
