@@ -11,9 +11,7 @@ from common.connection.sql import PostgresConnection
 from common.util.lifespan import compose
 from common.middleware import CorrelationIdMiddleware
 from model.sql.history import History
-
-OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://chat.elpai.org/v1")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+from common.config import OPENROUTER_API_KEY, OPENROUTER_BASE_URL
 
 pg = PostgresConnection()
 kafka = KafkaConnection()
@@ -40,7 +38,6 @@ app.include_router(public_router, prefix="")
 app.include_router(private_router, prefix="")
 
 
-#####
 from fastapi import Request, BackgroundTasks
 from fastapi.responses import Response, StreamingResponse
 import json
@@ -62,8 +59,8 @@ def nonstream_parser(content: str) -> dict:
 
 @app.post("/completions")
 async def chat_proxy(request: Request, tasks: BackgroundTasks):
-    url = f"{OPENAI_BASE_URL}/chat/completions"
-    headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
+    url = f"{OPENROUTER_BASE_URL}/chat/completions"
+    headers = {"Authorization": f"Bearer {OPENROUTER_API_KEY}"}
     body = await request.json()
 
     client = httpx.AsyncClient(timeout=600)
