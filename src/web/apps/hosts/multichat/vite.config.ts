@@ -49,6 +49,7 @@ export default defineConfig(({ command, mode }) => {
   );
 
   return {
+    // base: UI_GATEWAY_URL,
     server: {
       port: SERVICE_PORT,
       hmr: {

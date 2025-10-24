@@ -1,5 +1,5 @@
 services:
-  api-reverse-proxy:
+  reverse-proxy:
     build:
       context: docker/gateway
     ports:

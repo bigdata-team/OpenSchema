@@ -5,10 +5,12 @@ import App from './App'
 
 import '@/index.css'
 
+const BASE_PATH = "/";
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename={BASE_PATH}>
       <App />
     </BrowserRouter>
-  </StrictMode>
+  </StrictMode>,
 )
