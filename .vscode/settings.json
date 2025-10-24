@@ -1,12 +1,6 @@
 {
-<<<<<<< HEAD
   "python.analysis.autoImportCompletions": false,
   "python-envs.pythonProjects": [],
   "python-envs.defaultEnvManager": "ms-python.python:conda",
   "python-envs.defaultPackageManager": "ms-python.python:conda"
-=======
-  "python-envs.defaultEnvManager": "ms-python.python:conda",
-  "python-envs.defaultPackageManager": "ms-python.python:conda",
-  "python-envs.pythonProjects": []
->>>>>>> 4a1a985 (add: v1.2)
 }

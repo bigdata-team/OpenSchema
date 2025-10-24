@@ -7,13 +7,10 @@ declare module "remote/store";
 declare module "chat/App";
 declare module "chat/Counter";
 declare module "chat/store";
+declare module "chat/Chat";
+declare module "chat/ChatSend";
+declare module "chat/ChatMulti";
 
 declare module "auth/App";
 declare module "auth/Counter";
 declare module "auth/store";
-
-declare module "chat/Chat";
-declare module "chat/SendChat";
-
-declare module "auth/Chat";
-declare module "auth/SendChat";

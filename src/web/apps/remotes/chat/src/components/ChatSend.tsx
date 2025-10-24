@@ -2,122 +2,204 @@ import React from 'react';
 import type { ChangeEvent, KeyboardEvent } from "react";
 import  Config from '@/config';
 import "@/index.css";
+import { useChatStore } from '@/store';
+import { addToChatHistory, updateLatestResponse } from '@/model/chat';
 
 
-export async function processChat(str: string,targetID:string) {
+export async function processChat(str: string, targetID: string, model: string, modelName: string, conversationIndex: number, chatStore: ReturnType<typeof useChatStore.getState>) {
 
-    let targetDiv = document.getElementById(targetID);
-    if(!targetDiv)
-        return "error";
+    console.log("processChat:using model:", model, targetID, modelName, "conversation:", conversationIndex);
 
     // const url = `https://api.openai.com/v1/chat/completions`
     const url = `${Config.value("API_GATEWAY_URL")}/api/v1/chat/completions`;
-    const response = await fetch(url, {
-        method: `POST`,
-        headers: {
-            "content-type": `application/json`,
-            Authorization: `Bearer ${Config.value("TEMP_ACCESS_TOKEN")}`,
-        },
-        body: JSON.stringify({
-            model:"openai/gpt-4o",
-            messages:[
-                {
-                    role:"user",
-                    content:str
-                }
-            ],
-            stream:true
-        }),
-    });
 
-    const reader = response.body?.getReader();
-    if(!reader)
-    {
-        targetDiv.textContent = `error at ${targetID} #1`;
+    // Start streaming for this chat with conversation index
+    chatStore.startStreaming(targetID, conversationIndex);
+
+    try {
+        // Start the fetch - this happens in parallel for all chats
+        const response = await fetch(url, {
+            method: `POST`,
+            headers: {
+                "content-type": `application/json`,
+                Authorization: `Bearer ${Config.value("TEMP_ACCESS_TOKEN")}`,
+            },
+            body: JSON.stringify({
+                model: model,
+                messages:[
+                    {
+                        role:"user",
+                        content:str
+                    }
+                ],
+                stream:true
+            }),
+        });
+
+        const reader = response.body?.getReader();
+        if(!reader)
+        {
+            chatStore.updateStreamingMessage(targetID, `error at ${targetID} #1`, conversationIndex);
+            chatStore.stopStreaming(targetID, conversationIndex);
+            return "error";
+        }
+
+        const decoder = new TextDecoder("utf-8");
+        let buffer = "";
+
+        // Process the stream - this now runs independently for each chat
+        const processStream = async () => {
+            while (true) {
+                const { done, value } = await reader.read();
+
+                if (done) {
+                    break;
+                }
+
+                buffer += decoder.decode(value, { stream: true });
+
+                // 줄 단위로 분리
+                const lines = buffer.split("\n");
+                buffer = lines.pop() || ""; // 마지막 줄은 아직 덜 들어온 데이터일 수 있음
+
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed.startsWith("data:")) continue;
+                    const data = trimmed.replace(/^data:\s*/, "");
+
+                    if (data === "[DONE]") {
+                        console.log(`\n✅ 스트리밍 완료! (${targetID})`);
+                        break;
+                    }
+
+                    try {
+                        const json = JSON.parse(data);
+                        const delta = json.choices?.[0]?.delta?.content;
+                        if (delta) {
+                            // Update streaming message in store
+                            console.log(targetID, delta);
+                            chatStore.updateStreamingMessage(targetID, delta, conversationIndex);
+
+                            // Update chat history with streaming response
+                            updateLatestResponse(targetID, modelName, model, delta);
+                        }
+                    } catch (err) {
+                        console.error(`Error parsing stream data for ${targetID}:`, err);
+                    }
+                }
+            }
+
+            // Stop streaming when done
+            chatStore.stopStreaming(targetID, conversationIndex);
+        };
+
+        // Don't await here - let it run independently
+        processStream();
+
+        // Return immediately so other streams can start
+        return "streaming...";
+    } catch (error) {
+        console.error(`Error in processChat for ${targetID}:`, error);
+        chatStore.updateStreamingMessage(targetID, `error: ${error}`, conversationIndex);
+        chatStore.stopStreaming(targetID, conversationIndex);
         return "error";
     }
-    const decoder = new TextDecoder("utf-8");
-    let responseChat = "";
-    let buffer = "";
-
-    while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) {
-            break;
-        }
-
-        buffer += decoder.decode(value, { stream: true });
-
-        // 줄 단위로 분리
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || ""; // 마지막 줄은 아직 덜 들어온 데이터일 수 있음
-
-        for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed.startsWith("data:")) continue;
-            const data = trimmed.replace(/^data:\s*/, "");
-
-            if (data === "[DONE]") {
-                console.log("\n✅ 스트리밍 완료!");
-                break;
-            }
-
-            try {
-                const json = JSON.parse(data);
-                const delta = json.choices?.[0]?.delta?.content;
-                if (delta) {
-                    // 부분 출력
-                    console.log(delta);
-                    responseChat += delta;
-                    //process.stdout.write(delta);
-                }
-            } catch (err) {
-                responseChat += `error at ${targetID} #2`;
-            }
-        }
-        
-        //responseChat += chunk;
-
-        targetDiv.textContent = responseChat;
-    }
-
-    if(responseChat == "")
-        targetDiv.textContent = `no response at ${targetID}`;
-
-    //console.log(responseChat);
-    return responseChat;
 }
 
-export default function SendChat({
+export default function ChatSend({
     targetID
 }:{
     targetID:Array<string>;
 })
 {
+    // Get models and chat store (now all from useChatStore)
+    const { models, /* TODO addUserMessage, */ setCurrentInput, addConversation } = useChatStore();
 
-    HTMLTextAreaElement;
     let [message,setMessage] = React.useState("");
+
+    const isProcessingRef = React.useRef(false);
+
     const handleMessageInput = (e:ChangeEvent<HTMLTextAreaElement>) => {
-        setMessage(e.target.value);
+        const valueWithoutNewlines = e.target.value.replace(/\n/g, '');
+        // setCurrentInput(valueWithoutNewlines);
+        setMessage(valueWithoutNewlines);
     }
 
     async function processKeyboardInput(event:KeyboardEvent)
     {
-        console.log(event);
+        console.log('TODO >>> event:', event);
         if(event.key == "Enter" && event.shiftKey == false)
         {
-            let promiseList = targetID.map((id) => {return processChat(message,id);});
-            await Promise.all(promiseList);
-
-            setMessage("");
+            // Prevent default behavior and stop propagation immediately
             event.preventDefault();
+            event.stopPropagation();
+
+            // Prevent double execution
+            if (isProcessingRef.current) {
+                console.log('Already processing, skipping...');
+                return;
+            }
+
+            // Don't process if message is empty
+            if (!message.trim()) {
+                return;
+            }
+
+            setCurrentInput(message);
+
+            // Add to conversation history
+            addConversation(message);
+
+            // Add to chat history (for saving)
+            addToChatHistory(message, {});
+
+            // Set processing flag
+            isProcessingRef.current = true;
+
+            try {
+                // Get chat store instance
+                const chatStore = useChatStore.getState();
+
+                // Add user message to all target chats
+                /*
+                targetID.forEach((id) => {
+                    addUserMessage(id, message);
+                });
+                */
+
+                // Get current conversation index before starting
+                const currentConvIndex = chatStore.currentConversationIndex;
+
+                // Start processing all chats in parallel
+                let promiseList = targetID.map((id) => {
+                    const model = models[id];
+                    if (model) {
+                        // Get model name from chatting data
+                        const modelName = Object.keys(models).find(key => models[key] === model) || id;
+                        return processChat(message, id, model, modelName, currentConvIndex, chatStore);
+                    } else {
+                        console.error(`No model found for target ID: ${id}`);
+                    }
+                });
+                await Promise.all(promiseList);
+
+                // Increment conversation index for next conversation
+                useChatStore.setState((state) => ({
+                    currentConversationIndex: state.currentConversationIndex + 1
+                }));
+
+                setMessage("");
+                setCurrentInput(""); // Clear current input to prevent duplicate display
+            } finally {
+                // Reset processing flag
+                isProcessingRef.current = false;
+            }
         }
     }
 
     return (
         <div className="border-border-faint bg-surface-primary relative mx-auto min-h-0 w-full flex-none rounded-[14px] border">
-            <form className="flex w-full flex-col items-start justify-center p-2">
+            <form className="flex w-full flex-col items-start justify-center p-2" onSubmit={(e) => e.preventDefault()}>
             <div className="flex w-full flex-col justify-between gap-1 md:gap-2">
                 <input
                 accept="image/png,.png,image/jpeg,.jpg,.jpeg,image/webp,.webp"
@@ -149,7 +231,7 @@ export default function SendChat({
                     data-sentry-source-file="evaluation-form.tsx"
                     style={{ height: "48px !important" }}
                     onChange={handleMessageInput}
-                    onKeyDown={processKeyboardInput} 
+                    onKeyDown={processKeyboardInput}
                 />
                 <div className="flex justify-between gap-4">
                 <div className="mr-1 flex h-8 flex-none gap-2">
