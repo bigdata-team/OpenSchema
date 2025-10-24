@@ -1,31 +1,24 @@
-import { Routes, Route } from "react-router";
-import Home from './pages/Home';
-import About from './pages/About';
-import './index.css'
-
 import React from 'react';
+import { Routes, Route } from "react-router";
+// import Home from './pages/Home';
+import About from './pages/About';
+import '@//index.css'
+import Multichat from './pages/Multichat';
 
 const AuthApp = React.lazy(() => import('auth/App'));
-const ChatApp = React.lazy(() => import('chat/Chat'));
-const SendChat = React.lazy(() => import('chat/SendChat'));
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      {/* <Route path="/" element={<Home />} /> */}
+      <Route path="/" element={<Multichat /> } />
       <Route path="/about" element={<About />} />
       <Route path="/auth/*" element={
         <React.Suspense fallback={<div>Loading Remote App...</div>}>
           <AuthApp />
         </React.Suspense>
       } /> 
-      <Route path="/chat/*" element={
-        <React.Suspense fallback={<div>Loading Remote App...</div>}>
-          <ChatApp chatContentID="abcd"/>
-          <ChatApp chatContentID="bcde"/>
-          <SendChat targetID={["abcd","bcde"]}/>
-        </React.Suspense>
-      } />
+      {/* <Route path="/chat/*" element={<Multichat /> } /> */}
     </Routes>
   );
 }

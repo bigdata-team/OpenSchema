@@ -23,7 +23,8 @@ export default defineConfig(({ mode }) => {
     "./App": "./src/App.tsx",
     "./Counter": "./src/components/Counter.tsx",
     "./Chat": "./src/components/Chat.tsx",
-    "./SendChat": "./src/components/SendChat.tsx",
+    "./ChatSend": "./src/components/ChatSend.tsx",
+    "./ChatMulti": "./src/components/ChatMulti.tsx",
   };
 
   ///////////////////////////////
