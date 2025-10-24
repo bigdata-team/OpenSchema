@@ -1,12 +1,8 @@
 from fastapi import Depends, Request
 from repository.redis.jwt import JwtRepository
 from repository.sql.user import UserRepository
-from service.login import LoginService
 
-from common.config import JWT_REFRESH_TOKEN_TTL, SERVICE_VERSION, SERVICE_NAME
 from common.model.http import create_response
-from common.model.jwt import RefreshTokenPayload
-from common.util.jwt import verify_token
 
 
 class MeService:

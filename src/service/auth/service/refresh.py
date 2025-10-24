@@ -1,6 +1,6 @@
 from fastapi import Depends, Request
 from repository.redis.jwt import JwtRepository
-from service.login import LoginService
+from service.signin import SignInService
 
 from common.config import JWT_REFRESH_TOKEN_TTL, SERVICE_VERSION, SERVICE_NAME
 from common.model.http import create_response
@@ -18,12 +18,15 @@ class RefreshService:
         self.repo = repo
 
     async def refresh(self):
+        cookie_payload = verify_token(self.request.cookies.get("refresh_token"))
         header_payload = self.request.state.token_payload
-        cookie_payload = None
-        if not header_payload:
-            cookie_payload = verify_token(self.request.cookies.get("refresh_token"))
+        print("****************")
+        print(cookie_payload)
+        print("****************")
+        print(header_payload)
+        print("****************")
 
-        payload = header_payload or cookie_payload or None
+        payload = cookie_payload or header_payload or None
 
         if isinstance(payload, RefreshTokenPayload):
             if await self.repo.get(f"bl:jwt:{payload.sid}"):
@@ -32,7 +35,7 @@ class RefreshService:
             await self.repo.create_or_update(
                 f"bl:jwt:{payload.sid}", "blacklisted", ttl=JWT_REFRESH_TOKEN_TTL
             )
-            return await LoginService.issue(
+            return await SignInService.issue(
                 user_id=payload.sub, detail="Token refreshed."
             )
 

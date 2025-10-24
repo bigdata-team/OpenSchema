@@ -1,12 +1,10 @@
 from fastapi import APIRouter, Depends, Request
-from model.http.login import LoginResponse
-from service.login import LoginService
-from service.logout import LogoutService
 from service.me import MeService
-from service.register import RegisterService
+from service.signout import SignOutService
+from model.sql import User
 
 from common.middleware.authorization import get_auth_dependency
-from common.model.http import DataBody, create_response
+from common.model.http import create_response, DataBody, Body
 
 router = APIRouter(
     tags=["private"],
@@ -21,12 +19,12 @@ async def ping(request: Request):
     return create_response(detail="pong", data=request.state.token_payload)
 
 
-@router.get("/logout")
-async def logout(service: LogoutService = Depends(LogoutService)):
-    return await service.logout()
+@router.post("/signout", response_model=Body)
+async def signout(service: SignOutService = Depends(SignOutService)):
+    return await service.signout()
 
 
-@router.get("/me")
+@router.get("/me", response_model=DataBody[User])
 async def me(
     service: MeService = Depends(MeService),
 ):

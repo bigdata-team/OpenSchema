@@ -1,14 +1,9 @@
-from fastapi import APIRouter, Depends, Request
-from model.http.login import LoginRequest, LoginResponse
-from model.http.register import RegisterRequest
-from model.sql import User
-from service.login import LoginService
+from fastapi import APIRouter, Depends
+from model.http.signin import SignInResponse
 from service.refresh import RefreshService
-from service.register import RegisterService
 
 from common.middleware.authorization import get_auth_dependency
-from common.model.http import DataBody, create_response
-from common.util.jwt import verify_token
+from common.model.http import DataBody
 
 router = APIRouter(
     tags=["protected"],
@@ -18,6 +13,6 @@ router = APIRouter(
 )
 
 
-@router.post("/refresh", response_model=DataBody[LoginResponse])
-async def login(service: RefreshService = Depends(RefreshService)):
+@router.get("/refresh", response_model=DataBody[SignInResponse])
+async def refresh(service: RefreshService = Depends(RefreshService)):
     return await service.refresh()

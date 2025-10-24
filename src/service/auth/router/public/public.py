@@ -1,27 +1,25 @@
-from fastapi import APIRouter, Depends, Request
-from model.http.login import LoginRequest, LoginResponse
-from model.http.register import RegisterRequest
+from fastapi import APIRouter, Depends
+from model.http.signin import SignInRequest, SignInResponse
+from model.http.signup import SignUpRequest
 from model.sql import User
-from service.login import LoginService
-from service.register import RegisterService
+from service.signin import SignInService
+from service.signup import SignUpService
 
-from common.model.http import DataBody, create_response
+from common.model.http import Body, DataBody, create_response
 
 router = APIRouter(tags=["public"])
 
 
-@router.get("/ping")
+@router.get("/ping", response_model=Body)
 async def ping():
     return create_response(detail="pong")
 
 
-@router.post("/register", response_model=DataBody[User])
-async def register(
-    body: RegisterRequest, service: RegisterService = Depends(RegisterService)
-):
-    return await service.register(body.email, body.password)
+@router.post("/signup", response_model=DataBody[User])
+async def signup(body: SignUpRequest, service: SignUpService = Depends(SignUpService)):
+    return await service.signup(body.email, body.password)
 
 
-@router.post("/login", response_model=DataBody[LoginResponse])
-async def login(body: LoginRequest, service: LoginService = Depends(LoginService)):
-    return await service.login(body.email, body.password)
+@router.post("/signin", response_model=DataBody[SignInResponse])
+async def signin(body: SignInRequest, service: SignInService = Depends(SignInService)):
+    return await service.signin(body.email, body.password)
