@@ -77,6 +77,11 @@ async def get_chat_with_children(params: ChatListRequest = Depends(),service: Ch
 @router.post("/completions")
 async def completions(req_body: ChatRequest, tasks: BackgroundTasks, service: ChatService = Depends(ChatService)):
     print(f"TODO >>> completions: {req_body}")
+    return await service.completions(req_body=req_body, tasks=tasks)
+
+@router.post("/conversations")
+async def conversations(req_body: ChatRequest, tasks: BackgroundTasks, service: ChatService = Depends(ChatService)):
+    print(f"TODO >>> conversations: {req_body}")
     if not req_body.parent_id or req_body.parent_id.strip() == "" or req_body.parent_id == "string":
         return create_response(code=400, detail="parent_id is required")
-    return await service.chat(req_body=req_body, tasks=tasks)
+    return await service.conversations(req_body=req_body, tasks=tasks)
