@@ -10,7 +10,8 @@ from common.connection.kafka import KafkaConnection
 from common.connection.sql import PostgresConnection
 from common.util.lifespan import compose
 from common.middleware import CorrelationIdMiddleware
-from model.sql.history import History
+from model.sql.chat import Chat
+from model.sql.chat import Chat
 from common.config import OPENROUTER_API_KEY, OPENROUTER_BASE_URL
 
 pg = PostgresConnection()
@@ -38,6 +39,34 @@ app.include_router(public_router, prefix="")
 app.include_router(private_router, prefix="")
 
 
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+    )
+    server_url = app.root_path
+    openapi_schema["servers"] = [{"url": server_url}]
+    components = openapi_schema.setdefault("components", {})
+    security_schemes = components.setdefault("securitySchemes", {})
+    security_schemes["BearerAuth"] = {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Use jwt access token for authorization",
+    }
+    openapi_schema["security"] = [{"BearerAuth": []}]
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi
+
+
+"""
 from fastapi import Request, BackgroundTasks
 from fastapi.responses import Response, StreamingResponse
 import json
@@ -109,3 +138,4 @@ async def chat_proxy(request: Request, tasks: BackgroundTasks):
     await res.aclose()
     await client.aclose()
     return response
+"""

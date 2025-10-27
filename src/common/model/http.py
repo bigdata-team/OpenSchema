@@ -28,8 +28,8 @@ def create_response_model(detail: str | None = None, data: T | None = None):
     return Body(detail=detail)
 
 
-def create_response(code: int = 200, detail: str = None, data: T = None):
+def create_response(code: int = 200, media_type: str = "application/json", detail: str = None, data: T = None):
 
     content = create_response_model(detail=detail, data=data)
 
-    return Response(content.model_dump_json(), status_code=code)
+    return Response(content.model_dump_json(), status_code=code, media_type=media_type)
