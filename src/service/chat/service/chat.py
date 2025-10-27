@@ -21,7 +21,7 @@ class ChatService:
         self.request = request
         self.repo = repo
     
-    async def stream_parser(self, chat: Chat, content: str) -> list:
+    async def stream_parser(self, chat: Chat | None, content: str) -> list:
         """
         chunks = []
         for chunk in content.split("\n\n"):
@@ -32,53 +32,107 @@ class ChatService:
         return chunks
         """
 
-        answer_text = ""
-        for line in content.splitlines():
-            if line.startswith("data: "):
-                b = line.removeprefix("data: ")
-                if not b.strip() == "[DONE]":
-                    jsonB = json.loads(b)
-                    if "choices" in jsonB and len(jsonB["choices"]) > 0 and "delta" in jsonB["choices"][0] and "content" in jsonB["choices"][0]["delta"]:
-                        c = jsonB["choices"][0]["delta"]["content"]
-                        answer_text += c
-                    if "usage" in jsonB:
-                        usage = jsonB["usage"]
-                        chat.prompt_tokens = usage.get("prompt_tokens", None)
-                        chat.completion_tokens = usage.get("completion_tokens", None)
-                        chat.total_tokens = usage.get("total_tokens", None)
-                    if chat.completion_id is None and "id" in jsonB:
-                        chat.completion_id = jsonB["id"]
+        if chat is not None:
+            answer_text = ""
+            for line in content.splitlines():
+                if line.startswith("data: "):
+                    b = line.removeprefix("data: ")
+                    if not b.strip() == "[DONE]":
+                        jsonB = json.loads(b)
+                        if "choices" in jsonB and len(jsonB["choices"]) > 0 and "delta" in jsonB["choices"][0] and "content" in jsonB["choices"][0]["delta"]:
+                            c = jsonB["choices"][0]["delta"]["content"]
+                            answer_text += c
+                        if "usage" in jsonB:
+                            usage = jsonB["usage"]
+                            chat.prompt_tokens = usage.get("prompt_tokens", None)
+                            chat.completion_tokens = usage.get("completion_tokens", None)
+                            chat.total_tokens = usage.get("total_tokens", None)
+                        if chat.completion_id is None and "id" in jsonB:
+                            chat.completion_id = jsonB["id"]
 
-        chat.answer = answer_text
-        chat.response = content
-        print(f"TODO >>>> chat >>> response: {chat.answer}")
-        await self.repo.create(chat)
+            chat.answer = answer_text
+            chat.response = content
+            print(f"TODO >>>> chat >>> response: {chat.answer}")
+            await self.repo.create(chat)
         return []
 
 
-    async def nonstream_parser(self, chat: Chat, content: str) -> dict:
+    async def nonstream_parser(self, chat: Chat | None, content: str) -> dict:
         json_content = json.loads(content)
-        chat.response = content
-        chat.completion_id = json_content.get("id", None)
-        if "choices" in json_content and len(json_content["choices"]) > 0:
-            first_choice = json_content["choices"][0]
-            if "message" in first_choice and "content" in first_choice["message"]:
-                chat.answer = first_choice["message"]["content"]
-        if "usage" in json_content:
-            usage = json_content["usage"]
-            chat.prompt_tokens = usage.get("prompt_tokens", None)
-            chat.completion_tokens = usage.get("completion_tokens", None)
-            chat.total_tokens = usage.get("total_tokens", None)
-        print(f"TODO >>>> chat >>> response: {chat.answer}")
-        await self.repo.create(chat)
-        return json.loads(content)
+        if chat is not None:
+            chat.response = content
+            chat.completion_id = json_content.get("id", None)
+            if "choices" in json_content and len(json_content["choices"]) > 0:
+                first_choice = json_content["choices"][0]
+                if "message" in first_choice and "content" in first_choice["message"]:
+                    chat.answer = first_choice["message"]["content"]
+            if "usage" in json_content:
+                usage = json_content["usage"]
+                chat.prompt_tokens = usage.get("prompt_tokens", None)
+                chat.completion_tokens = usage.get("completion_tokens", None)
+                chat.total_tokens = usage.get("total_tokens", None)
+            print(f"TODO >>>> chat >>> response: {chat.answer}")
+            await self.repo.create(chat)
+        return json_content
+    
+    async def completions(self, req_body: ChatRequest, tasks: BackgroundTasks ):
+        url = f"{OPENROUTER_BASE_URL}/chat/completions"
+        headers = {"Authorization": f"Bearer {OPENROUTER_API_KEY}"}
+        body = req_body.model_dump()
 
-    async def chat(self, req_body: ChatRequest, tasks: BackgroundTasks ):
+        client = httpx.AsyncClient(timeout=600)
+        req = client.build_request(
+            "POST",
+            url,
+            headers=headers,
+            json=body,
+        )
+        res = await client.send(req, stream=True)
+
+        content_type = res.headers.get("content-type", "")
+        status = res.status_code
+
+        if content_type.startswith("text/event-stream"):
+
+            async def stream_generator():
+                accumulated_text = ""
+                try:
+                    async for b in res.aiter_bytes():
+                        accumulated_text += b.decode("utf-8", errors="ignore")
+                        yield b
+                finally:
+                    tasks.add_task(self.stream_parser, chat=None, content=accumulated_text)
+                    await res.aclose()
+                    await client.aclose()
+
+            return StreamingResponse(
+                stream_generator(),
+                status_code=status,
+                media_type="text/event-stream",
+                headers={
+                    "Cache-Control": "no-cache",
+                    "X-Accel-Buffering": "no",
+                    "Connection": "keep-alive",
+                },
+            )
+
+        content = await res.aread()
+        tasks.add_task(self.nonstream_parser, chat=None, content=content.decode("utf-8", errors="ignore"))
+        response = Response(
+            content=content,
+            status_code=status,
+            media_type=content_type or "application/json",
+        )
+        await res.aclose()
+        await client.aclose()
+        return response
+
+    async def conversations(self, req_body: ChatRequest, tasks: BackgroundTasks ):
         user_id = None
         token_payload = getattr(self.request.state, 'token_payload', None)
         if token_payload is not None:
             user_id = token_payload.sub
-        print(f"TODO >>> chat >>> {user_id}, {req_body}")
+        print(f"TODO >>> conversations >>> {user_id}, {req_body}")
 
         url = f"{OPENROUTER_BASE_URL}/chat/completions"
         headers = {"Authorization": f"Bearer {OPENROUTER_API_KEY}"}

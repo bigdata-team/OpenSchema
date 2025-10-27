@@ -40,7 +40,6 @@ class ChatRepository(KafkaSqlRepository[Chat]):
     
     # chat title
     async def delete_chat_title(self, user_id: str, id: str) -> Chat:
-        print(f"TODO >>> delete chat title: id={id}")
         query = select(self.model).where(
             self.model.deleted_at == None, 
             self.model.user_id == user_id, self.model.id == id,
@@ -49,7 +48,6 @@ class ChatRepository(KafkaSqlRepository[Chat]):
         exist = exist.scalar_one_or_none()
         if exist is None:
             return None
-        print(f"TODO >>> delete chat title: {exist.title}")
         await self.delete(id=id)
         return exist
     
@@ -92,49 +90,49 @@ class ChatRepository(KafkaSqlRepository[Chat]):
             self.model.deleted_at == None,
             self.model.user_id == user_id, self.model.parent_id == exist.id,
         )
-        results = await self.sql.execute(query)
+        list1 = await self.sql.execute(query)
 
         res = []
-        for r in results.scalars().all():
-            d = r.model_dump()
-            d.pop("request", None)
-            d.pop("response", None)
-
-            # TODO res.append(d)
+        for r1 in list1.scalars().all():
+            d1 = r1.model_dump()
+            d1.pop("request", None)
+            d1.pop("response", None)
+            # res.append(d1)
 
             query = select(self.model).where(
                 self.model.deleted_at == None,
-                self.model.user_id == user_id, self.model.parent_id == r.id,
+                self.model.user_id == user_id, self.model.parent_id == r1.id,
             )
             list2 = await self.sql.execute(query)
             children = []
-            for r in list2.scalars().all():
-                d = r.model_dump()
-                d.pop("request", None)
-                d.pop("response", None)
-                children.append(d)
+            for r2 in list2.scalars().all():
+                d2 = r2.model_dump()
+                d2.pop("request", None)
+                d2.pop("response", None)
+                children.append(d2)
+
             res.append(ChatChild(
-                id=r.id,
+                id=r1.id,
                 #
-                parent_id=r.parent_id,
-                title=r.title,
+                parent_id=r1.parent_id,
+                title=r1.title,
                 #
-                user_id=r.user_id,
-                service_id=r.service_id,
-                url=r.url,
-                user_prompt=r.user_prompt,
-                answer=r.answer,
+                user_id=r1.user_id,
+                service_id=r1.service_id,
+                url=r1.url,
+                user_prompt=r1.user_prompt,
+                answer=r1.answer,
                 request=None,
                 response=None,
                 #
-                completion_id=r.completion_id,
-                model_name=r.model_name,
-                prompt_tokens=r.prompt_tokens,
-                completion_tokens=r.completion_tokens,
-                total_tokens=r.total_tokens,
-                is_stream=r.is_stream,
-                system_prompt=r.system_prompt,
-                parameters=r.parameters, 
+                completion_id=r1.completion_id,
+                model_name=r1.model_name,
+                prompt_tokens=r1.prompt_tokens,
+                completion_tokens=r1.completion_tokens,
+                total_tokens=r1.total_tokens,
+                is_stream=r1.is_stream,
+                system_prompt=r1.system_prompt,
+                parameters=r1.parameters, 
                 #
                 children=children,
             ))
