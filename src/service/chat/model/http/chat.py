@@ -7,7 +7,7 @@ class Message(BaseModel):
     content: str = "한국 수도"
 
 
-class ChatRequest(BaseModel):
+class ChatCompletionRequest(BaseModel):
     parent_id : str
     model: str = "openai/gpt-5"
     messages: list[Message]
@@ -17,16 +17,23 @@ class ChatRequest(BaseModel):
     top_p: float = 1.0
     top_k: int = 50
 
-class ChatTitleRequest(BaseModel):
-    id : str | None
+class ChatTitleCreateRequest(BaseModel):
     title : str
+
+class ChatTitleUpdateRequest(BaseModel):
+    id: str
+    title : str
+
+class ChatTitleDeleteRequest(BaseModel):
+    id: str
 
 class ChatCreateRequest(BaseModel):
     parent_id: str
 
 class ChatListRequest(BaseModel):
     id : str 
-
+    page: int = 1
+    limit: int = 500
 
 class ChatChild(BaseModel):
     id: str

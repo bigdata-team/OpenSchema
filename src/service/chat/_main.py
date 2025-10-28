@@ -72,7 +72,7 @@ app.openapi = custom_openapi
 
 
 @app.post("/completions")
-async def chat(body: ChatRequest):
+async def chat(body: ):
     url = f"{OPENROUTER_BASE_URL}/chat/completions"
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
