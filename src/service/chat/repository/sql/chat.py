@@ -47,6 +47,7 @@ class ChatRepository(KafkaSqlRepository[Chat]):
         exist = await self.sql.execute(query)
         exist = exist.scalar_one_or_none()
         if exist is None:
+            # TODO
             return None
         print(f"TODO >>> delete chat title and its children: {exist}")
         await self.delete(id=id)
