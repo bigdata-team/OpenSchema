@@ -15,9 +15,43 @@ function ChatMultiTest() {
   const { conversationHistory } = useChatStore();
 
   useEffect(() => {
-    const fetchData = async () => {
-      const ret = await ChatAPI.get("251027000800003162xe01");
+    console.log("ChatMultiTest mounted");
+    let cancelled = false;
+
+    /*
+    const createTitle = async () => {
+      const ret = await ChatAPI.createTitle("New Title");
       if (ret) {
+        console.log('createTitle', ret.id)
+      }
+    };
+
+    const deleteTitle = async () => {
+      const ret = await ChatAPI.deleteTitle("251027050355211441GQ05");
+      if (ret) {
+        console.log('deleteTitle', ret.id)
+      }
+    };
+
+    const updateTitle = async () => {
+      const ret = await ChatAPI.updateTitle("251027050355211441GQ05", "Updated Title");
+      if (ret) {
+        console.log('updateTitle', ret.id)
+      }
+    };
+
+    const createChat = async () => {
+      const ret = await ChatAPI.createChat("251027050355211441GQ05")
+      if (ret) {
+        console.log('createChat', ret.id)
+      }
+    };
+    */
+
+    const getChat = async () => {
+      if (cancelled) return;
+      const ret = await ChatAPI.getChat("251027000800003162xe01");
+      if (ret && !cancelled) {
         console.log('title', ret.title)
         for (const child of ret.children) {
             console.log(" - child:", child.id);
@@ -27,7 +61,42 @@ function ChatMultiTest() {
         }
       }
     };
-    fetchData();
+
+    /*
+    const conversations = async () => {
+      const data = {
+        "parent_id": "251028013129009387kH14",
+        "model": "openai/gpt-5",
+        "messages": [
+          {
+            "role": "user",
+            "content": "한국 수도"
+          }
+        ],
+        "stream": true,
+        "system_prompt": null,
+        "temperature": 0.7,
+        "top_p": 1,
+        "top_k": 50
+      }
+      const ret = await ChatAPI.conversations(data);
+      if (ret) {
+        console.log('conversations', ret.id)
+      }
+    };
+    */
+
+    // createTitle();
+    // deleteTitle();
+    // updateTitle();
+    // createChat();
+    // conversations();
+    getChat();
+
+    // cleanup function when component unmounts
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (

@@ -8,7 +8,7 @@ from common.model.http import create_response
 from common.util.password import hash_password
 from common.config import OPENROUTER_API_KEY, OPENROUTER_BASE_URL, SERVICE_ID
 from model.sql.chat import Chat
-from model.http.chat import ChatRequest, ChatResponse
+from model.http.chat import ChatCompletionRequest, ChatResponse
 from repository.sql.chat import ChatRepository
 
 
@@ -75,7 +75,7 @@ class ChatService:
             await self.repo.create(chat)
         return json_content
     
-    async def completions(self, req_body: ChatRequest, tasks: BackgroundTasks ):
+    async def completions(self, req_body: ChatCompletionRequest, tasks: BackgroundTasks ):
         url = f"{OPENROUTER_BASE_URL}/chat/completions"
         headers = {"Authorization": f"Bearer {OPENROUTER_API_KEY}"}
         body = req_body.model_dump()
@@ -127,7 +127,7 @@ class ChatService:
         await client.aclose()
         return response
 
-    async def conversations(self, req_body: ChatRequest, tasks: BackgroundTasks ):
+    async def conversations(self, req_body: ChatCompletionRequest, tasks: BackgroundTasks ):
         user_id = None
         token_payload = getattr(self.request.state, 'token_payload', None)
         if token_payload is not None:

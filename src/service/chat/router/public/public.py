@@ -3,7 +3,7 @@ from fastapi import BackgroundTasks
 
 from common.middleware.authorization import get_auth_dependency
 from common.model.http import create_response
-from model.http.chat import ChatRequest
+from model.http.chat import ChatCompletionRequest
 from service.chat import ChatService
 
 from common.model.http import create_response
@@ -17,7 +17,7 @@ async def ping():
 
 """ TODO
 @router.post("/completions")
-async def completions(req_body: ChatRequest, tasks: BackgroundTasks, service: ChatService = Depends(ChatService)):
+async def completions(req_body: ChatCompletionRequest, tasks: BackgroundTasks, service: ChatService = Depends(ChatService)):
     print(f"TODO >>> completions: {req_body}")
     return await service.chat(req_body=req_body, tasks=tasks)
 """
