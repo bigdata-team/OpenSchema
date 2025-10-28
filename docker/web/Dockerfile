@@ -13,8 +13,12 @@ RUN corepack enable
 
 WORKDIR /app
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY ${BUILD_CONTEXT_PATH}/common/*/package.json ./${BUILD_CONTEXT_PATH}/common/
 COPY ${BUILD_CONTEXT_PATH}/apps/${SERVICE_DIR}/package.json ./${BUILD_CONTEXT_PATH}/apps/${SERVICE_DIR}/package.json
 RUN pnpm install --frozen-lockfile --filter ./${BUILD_CONTEXT_PATH}/apps/${SERVICE_DIR}...
+
+# for common 
+COPY ${BUILD_CONTEXT_PATH}/common/ ./${BUILD_CONTEXT_PATH}/common/
 
 WORKDIR /app/${BUILD_CONTEXT_PATH}/apps/${SERVICE_DIR}
 COPY ${BUILD_CONTEXT_PATH}/apps/${SERVICE_DIR}/. .

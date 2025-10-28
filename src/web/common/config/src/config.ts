@@ -1,5 +1,5 @@
 
-export default class Config {
+export class Config {
   static get CONFIG() : {[key:string]:string} {
     return {
       API_GATEWAY_URL: '$VITE_API_GATEWAY_URL',

@@ -5,7 +5,7 @@ import ChatSend from "@/components/ChatSend";
 // import Chat from "@/components/Chat";
 import ChatMulti from "@/components/ChatMulti";
 import ChatModelSelect from "@/components/ChatModelSelect";
-import { ChatAPI } from "@/api/chat";
+import { ChatAPI } from "@common/api";
 
 function ChatMultiTest() {
 

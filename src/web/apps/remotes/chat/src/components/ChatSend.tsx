@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ChangeEvent, KeyboardEvent } from "react";
-import  Config from '@/config';
+import { Config } from '@common/config';
 import "@/index.css";
 import { useChatStore } from '@/store';
 import { addToChatHistory, updateLatestResponse } from '@/model/chat';

@@ -1,7 +1,8 @@
 import React from "react";
 import { useEffect } from "react";
 
-import { ChatAPI } from "@/api/chat";
+// import { ChatAPI } from "@/api/chat" 
+import { ChatAPI } from "@common/api";
 
 import { useChatStore } from 'chat/store'
 const ChatMulti = React.lazy(() => import('chat/ChatMulti'));
@@ -16,10 +17,24 @@ function ChatMultiTest() {
   const { conversationHistory } = useChatStore();
 
   useEffect(() => {
-    const fetchData = async () => {
-      const ret = await ChatAPI.get("251027000800003162xe01");
-      if (ret) {
-        console.log('title', ret.title)
+    let cancelled = false;
+
+    const listTitle = async () => {
+      if (cancelled) return;
+      const ret = await ChatAPI.listTitle()
+      if (!cancelled && ret) {
+        for (const r of ret) {
+          console.log('title: title', r.title);
+        }
+      }
+    };
+    listTitle();
+
+    const getChat = async () => {
+      if (cancelled) return;
+      const ret = await ChatAPI.getChat("251027000800003162xe01");
+      if (!cancelled && ret) {
+        console.log('chat title', ret.title)
         for (const child of ret.children) {
             console.log(" - child:", child.id);
           for (const c of child.children) {
@@ -28,7 +43,12 @@ function ChatMultiTest() {
         }
       }
     };
-    fetchData();
+    getChat();
+
+    // cleanup function when component unmounts
+    return () => {
+      cancelled = true;
+    }
   }, []);
 
   return (

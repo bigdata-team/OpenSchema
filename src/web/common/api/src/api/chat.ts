@@ -1,6 +1,5 @@
 import { Http } from './http'
-
-import  Config from '@/config';
+import { Config } from '@common/config';
 
 const address = `${Config.value('API_GATEWAY_URL')}/api/v1/chat`;
 
@@ -61,6 +60,22 @@ export class ChatAPI {
           return res.data.data
         } catch (e) {
           console.error('deleteTitle error', e)
+        } 
+        return null;
+    }
+
+    static async listTitle() {
+        try {
+          const res = await Http.get(
+            `${address}/title`,
+          );
+          if (res.status !== 200) {
+            throw new Error(`Response status is "${res.status}"`);
+          }
+
+          return res.data.data
+        } catch (e) {
+          console.error('get error', e)
         } 
         return null;
     }
