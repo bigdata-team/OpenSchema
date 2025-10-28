@@ -44,9 +44,6 @@ type ChatState = {
   // Initialize a chat with default messages
   initChat: (chatContentID: string, initialMessages: ChatMessage[]) => void;
 
-  // Add a user message
-  addUserMessage: (chatContentID: string, message: string) => void;
-
   // Add an assistant message
   addAssistantMessage: (chatContentID: string, message: string) => void;
 
@@ -98,18 +95,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
     set((state) => ({
       chats: { ...state.chats, [chatContentID]: initialMessages },
     })),
-
-  addUserMessage: (chatContentID: string, message: string) =>
-    set((state) => {
-      const key = `${state.currentConversationIndex}:${chatContentID}`;
-      const currentMessages = state.chats[key] || [];
-      return {
-        chats: {
-          ...state.chats,
-          [key]: [...currentMessages, { role: "user", message }],
-        },
-      };
-    }),
 
   addAssistantMessage: (chatContentID: string, message: string) =>
     set((state) => {

@@ -9,7 +9,9 @@ declare module "chat/Counter";
 declare module "chat/store";
 declare module "chat/Chat";
 declare module "chat/ChatSend";
+// declare module "chat/ChatMultiTest";
 declare module "chat/ChatMulti";
+declare module "chat/ChatModelSelect";
 
 declare module "auth/App";
 declare module "auth/Counter";
