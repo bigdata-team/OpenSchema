@@ -11,7 +11,9 @@ export async function processChat(str: string, targetID: string, model: string, 
     console.log("processChat:using model:", model, targetID, modelName, "conversation:", conversationIndex);
 
     // const url = `https://api.openai.com/v1/chat/completions`
+    // TODO
     const url = `${Config.value("API_GATEWAY_URL")}/api/v1/chat/completions`;
+    // const url = `${Config.value("API_GATEWAY_URL")}/api/v1/chat/conversations`;
 
     // Start streaming for this chat with conversation index
     chatStore.startStreaming(targetID, conversationIndex);
@@ -25,6 +27,7 @@ export async function processChat(str: string, targetID: string, model: string, 
                 Authorization: `Bearer ${Config.value("TEMP_ACCESS_TOKEN")}`,
             },
             body: JSON.stringify({
+                parent_id: "TODO",
                 model: model,
                 messages:[
                     {
@@ -113,7 +116,7 @@ export default function ChatSend({
 })
 {
     // Get models and chat store (now all from useChatStore)
-    const { models, /* TODO addUserMessage, */ setCurrentInput, addConversation } = useChatStore();
+    const { models, setCurrentInput, addConversation } = useChatStore();
 
     let [message,setMessage] = React.useState("");
 
@@ -159,13 +162,6 @@ export default function ChatSend({
             try {
                 // Get chat store instance
                 const chatStore = useChatStore.getState();
-
-                // Add user message to all target chats
-                /*
-                targetID.forEach((id) => {
-                    addUserMessage(id, message);
-                });
-                */
 
                 // Get current conversation index before starting
                 const currentConvIndex = chatStore.currentConversationIndex;
