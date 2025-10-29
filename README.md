@@ -13,4 +13,10 @@ npm run dev
 
 ## ui library
 ### shadcn
+```
+https://ui.shadcn.com/
+```
 ### tailwindcss
+```
+https://ui.shadcn.com/docs/tailwind-v4
+```
