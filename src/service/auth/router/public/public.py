@@ -1,11 +1,15 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
+from urllib.parse import unquote
+import httpx
 from model.http.signin import SignInRequest, SignInResponse
 from model.http.signup import SignUpRequest
 from model.sql import User
 from service.signin import SignInService
 from service.signup import SignUpService
+from repository.sql.user import UserRepository
 
 from common.model.http import Body, DataBody, create_response
+from common.dependencies import get_gateway_auth_dependency
 
 router = APIRouter(tags=["public"])
 
@@ -23,3 +27,84 @@ async def signup(body: SignUpRequest, service: SignUpService = Depends(SignUpSer
 @router.post("/signin", response_model=DataBody[SignInResponse])
 async def signin(body: SignInRequest, service: SignInService = Depends(SignInService)):
     return await service.signin(body.email, body.password)
+
+
+@router.get("/me", response_model=DataBody[User])
+async def get_me(
+    request: Request,
+    gateway_user: dict = Depends(get_gateway_auth_dependency(strict=True)),
+    repo: UserRepository = Depends(UserRepository),
+):
+    """
+    현재 로그인한 사용자 정보 조회
+
+    Gateway에서 주입한 X-Auth-* 헤더를 통해 사용자 인증.
+    첫 로그인 시 자동으로 사용자 계정 생성 (SSO auto-provisioning).
+
+    Flow:
+    1. Gateway 헤더에서 이메일 추출
+    2. DB에서 이메일로 사용자 조회
+    3. 없으면 새 사용자 생성 (idp_cd, hashed_password=None)
+    4. 사용자 정보 반환
+
+    Returns:
+        현재 로그인한 사용자 정보
+    """
+    email = gateway_user["email"]
+
+    # 1. 이메일로 기존 사용자 찾기
+    user = await repo.get_by_email(email)
+
+    # Gateway 헤더에서 값 가져오기 (gateway_auth.py에서 이미 SDK로 한글 처리됨)
+    name = gateway_user["name"]  # 이미 정상적인 한글
+    role = gateway_user.get("role")
+
+    # 프로필 사진은 별도로 가져와야 함
+    picture = None
+    jwt_cookie = request.cookies.get("ELPAI_JWT")
+    if jwt_cookie:
+        try:
+            # host.docker.internal 사용 (Docker에서 호스트 접근)
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    "http://host.docker.internal:8080/api/oauth2/userinfo",
+                    cookies={"ELPAI_JWT": jwt_cookie},
+                    timeout=5.0
+                )
+                if response.status_code == 200:
+                    sdk_data = response.json()
+                    picture = sdk_data.get("picture")
+                    print(f"[Public API] Successfully fetched picture: {picture}")
+        except Exception as e:
+            print(f"[Public API] Could not fetch picture: {e}")
+
+    # 2. 기존 사용자가 있고 정보가 변경되었으면 업데이트
+    if user:
+        updated = False
+        if user.name != name:
+            user.name = name
+            updated = True
+        if user.picture != picture:
+            user.picture = picture
+            updated = True
+        if role and user.role != role:
+            user.role = role
+            updated = True
+
+        if updated:
+            user = await repo.update(user.id, user)  # id와 객체 모두 전달
+
+    # 3. 없으면 자동 생성 (첫 SSO 로그인)
+    if not user:
+        user = User(
+            email=email,
+            name=name,
+            role=role,
+            idp_cd=gateway_user["idp_cd"],
+            hashed_password=None,  # SSO 사용자는 비밀번호 없음
+            picture=picture,  # SDK에서 가져온 프로필 이미지
+            bio=None,
+        )
+        user = await repo.create(user)
+
+    return create_response(data=user)
