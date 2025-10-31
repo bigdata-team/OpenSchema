@@ -1,6 +1,4 @@
 from fastapi import APIRouter, Depends, Request
-from urllib.parse import unquote
-import httpx
 from model.http.signin import SignInRequest, SignInResponse
 from model.http.signup import SignUpRequest
 from model.sql import User
@@ -55,28 +53,14 @@ async def get_me(
     # 1. 이메일로 기존 사용자 찾기
     user = await repo.get_by_email(email)
 
-    # Gateway 헤더에서 값 가져오기 (gateway_auth.py에서 이미 SDK로 한글 처리됨)
-    name = gateway_user["name"]  # 이미 정상적인 한글
+    # gateway_auth.py에서 이미 JWT 검증 및 데이터 추출 완료
+    # - JWT 서명 검증 완료 (RS256)
+    # - 헤더-JWT 일치 확인 완료
+    # - 한글 이름 복원 완료
+    # - 프로필 사진 추출 완료
+    name = gateway_user["name"]      # JWT에서 추출한 정상 한글
     role = gateway_user.get("role")
-
-    # 프로필 사진은 별도로 가져와야 함
-    picture = None
-    jwt_cookie = request.cookies.get("ELPAI_JWT")
-    if jwt_cookie:
-        try:
-            # host.docker.internal 사용 (Docker에서 호스트 접근)
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    "http://host.docker.internal:8080/api/oauth2/userinfo",
-                    cookies={"ELPAI_JWT": jwt_cookie},
-                    timeout=5.0
-                )
-                if response.status_code == 200:
-                    sdk_data = response.json()
-                    picture = sdk_data.get("picture")
-                    print(f"[Public API] Successfully fetched picture: {picture}")
-        except Exception as e:
-            print(f"[Public API] Could not fetch picture: {e}")
+    picture = gateway_user.get("picture")  # JWT에서 추출한 프로필 사진
 
     # 2. 기존 사용자가 있고 정보가 변경되었으면 업데이트
     if user:
