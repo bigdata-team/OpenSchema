@@ -22,7 +22,8 @@ services:
     #   - ./data:/tmp/kraft-combined-logs
 
   postgres:
-    image: postgres
+    # image: postgres # 18 compatible problem
+    image: postgres:17.6
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
