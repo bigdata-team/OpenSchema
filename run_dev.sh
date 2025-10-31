@@ -44,7 +44,13 @@ check_error() {
 #docker compose --env-file .env.dev -f docker-compose-infra.yml up -d
 
 #####DOCKER_BUILDKIT=0 
-docker compose --env-file .env.dev -f docker-compose-service.yml build # --progress=plain # --no-cache
+#docker compose --env-file .env.dev -f docker-compose-service.yml build # --progress=plain # --no-cache
+#check_error
+#docker compose --env-file .env.dev -f docker-compose-service.yml down
+#docker compose --env-file .env.dev -f docker-compose-service.yml up -d
+
+#####DOCKER_BUILDKIT=0 
+docker compose --env-file .env.dev -f docker-compose-web.yml build # --progress=plain # --no-cache
 check_error
-docker compose --env-file .env.dev -f docker-compose-service.yml down
-docker compose --env-file .env.dev -f docker-compose-service.yml up -d
+docker compose --env-file .env.dev -f docker-compose-web.yml down
+docker compose --env-file .env.dev -f docker-compose-web.yml up -d

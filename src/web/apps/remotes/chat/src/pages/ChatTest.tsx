@@ -1,14 +1,17 @@
 import ChatSend from "@/components/ChatSend";
-import Chat from "@/components/Chat";
+import ChatOne from "@/components/ChatOne";
+import { Chat } from "@/model/chat";
 
 function ChatTest() {
 
   //let chatComponent = new Chat;
 
+  const chat = new Chat();
+
   return (
     <>
-      <Chat chatContentID={"abcd"}/>
-      <ChatSend targetID={["abcd"]}/>
+      <ChatOne titleId={"TODO"} chat={chat} modelIndex={0}/>
+      <ChatSend titleId={"TODO"} models={[]}/>
     </>
   )
 }

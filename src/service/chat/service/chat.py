@@ -150,6 +150,10 @@ class ChatService:
             "top_k": req_body.top_k,
         }
         newChat = Chat(
+            # hierarchy
+            parent_id=req_body.parent_id,
+            index=req_body.index,
+            #
             user_id=user_id,
             service_id=SERVICE_ID,
             url=url,
@@ -165,8 +169,6 @@ class ChatService:
             is_stream=body.get("stream", False),
             system_prompt=req_body.system_prompt,
             parameters=str(parameters),
-            # hierarchy
-            parent_id=req_body.parent_id,
         )
 
         client = httpx.AsyncClient(timeout=600)
@@ -251,12 +253,12 @@ class ChatService:
 
     ##########################################################################
     # chat
-    def create_chat(self, parent_id: str) -> Chat:
+    def create_chat(self, parent_id: str, user_prompt: str) -> Chat:
         user_id = None
         token_payload = getattr(self.request.state, 'token_payload', None)
         if token_payload is not None:
             user_id = token_payload.sub
-        return self.repo.create_chat(user_id=user_id, service_id=SERVICE_ID, parent_id=parent_id)
+        return self.repo.create_chat(user_id=user_id, service_id=SERVICE_ID, parent_id=parent_id, user_prompt=user_prompt)
 
     def get_chat_with_children(self, id: str) -> ChatResponse:
         user_id = None

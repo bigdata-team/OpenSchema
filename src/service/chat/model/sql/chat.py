@@ -6,6 +6,7 @@ from common.model.sql import BaseOrm
 class Chat(BaseOrm, table=True):
     parent_id: str | None
     title: str | None
+    index: int | None
     #
     user_id: str | None
     service_id: str | None

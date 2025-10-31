@@ -16,8 +16,10 @@ export default function Layout() {
 */
 
 import { Outlet } from 'react-router';
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { AppSidebar } from "./app-sidebar"
+// import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+// import { SidebarTrigger } from "@/components/ui/sidebar"
+// import { AppSidebar } from "@/pages/layout/AppSidebar"
+import { AppSidebarProvider } from "@/pages/layout/AppSidebarProvider"
 
 export default function Layout() {
   return (
@@ -29,14 +31,21 @@ export default function Layout() {
       }}
     >
     */
+    /*
     <SidebarProvider>
       <AppSidebar />
-      <main>
+      <main className="w-full">
         <SidebarTrigger />
-        <div style={{ padding: "1rem" }}>
+        <div style={{ padding: "0rem" }}>
           <Outlet />
         </div>
       </main>
     </SidebarProvider>
+    */
+    <AppSidebarProvider>
+      <div style={{ padding: "0rem" }}>
+        <Outlet />
+      </div>
+    </AppSidebarProvider>
   )
 }

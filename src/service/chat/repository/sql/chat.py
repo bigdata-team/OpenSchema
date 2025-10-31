@@ -58,7 +58,7 @@ class ChatRepository(KafkaSqlRepository[Chat]):
         query = select(self.model).where(
             self.model.deleted_at == None, 
             self.model.user_id == user_id, self.model.parent_id == None,
-        )
+        ).order_by(self.model.created_at.desc())
         results = await self.sql.execute(query)
 
         res = []
@@ -72,8 +72,8 @@ class ChatRepository(KafkaSqlRepository[Chat]):
     
     ##########################################################################
     # chat
-    async def create_chat(self, user_id: str, service_id: str, parent_id: str) -> Chat:
-        chat = self.model(user_id=user_id, service_id=service_id, parent_id=parent_id)
+    async def create_chat(self, user_id: str, service_id: str, parent_id: str, user_prompt: str) -> Chat:
+        chat = self.model(user_id=user_id, service_id=service_id, parent_id=parent_id, user_prompt=user_prompt)
         await self.create(chat)
         return chat
 
@@ -91,7 +91,7 @@ class ChatRepository(KafkaSqlRepository[Chat]):
         query = select(self.model).where(
             self.model.deleted_at == None,
             self.model.user_id == user_id, self.model.parent_id == exist.id,
-        )
+        ).order_by(self.model.created_at.asc(), self.model.index.asc())
         list1 = await self.sql.execute(query)
 
         res = []
@@ -104,7 +104,9 @@ class ChatRepository(KafkaSqlRepository[Chat]):
             query = select(self.model).where(
                 self.model.deleted_at == None,
                 self.model.user_id == user_id, self.model.parent_id == r1.id,
-            )
+            ).order_by(self.model.index.asc(), self.model.created_at.asc())
+            # print(str(query.compile(compile_kwargs={"literal_binds": True})))
+
             list2 = await self.sql.execute(query)
             children = []
             for r2 in list2.scalars().all():
@@ -118,6 +120,7 @@ class ChatRepository(KafkaSqlRepository[Chat]):
                 #
                 parent_id=r1.parent_id,
                 title=r1.title,
+                index=r1.index,
                 #
                 user_id=r1.user_id,
                 service_id=r1.service_id,
@@ -144,6 +147,7 @@ class ChatRepository(KafkaSqlRepository[Chat]):
             #
             parent_id=exist.parent_id,
             title=exist.title,
+            index=exist.index,
             #
             user_id=exist.user_id,
             service_id=exist.service_id,

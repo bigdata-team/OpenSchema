@@ -1,12 +1,15 @@
-// import React from 'react';
 import { Routes, Route } from "react-router";
 import Home from './pages/Home';
 import About from './pages/About';
 import '@/index.css'
-import ChatMultiTest from './pages/ChatMultiTest';
-import Layout from './pages/layout/layout';
+import Layout from "@/pages/layout/Layout";
 
+import ChatMultiTest from '@/pages/ChatMultiTest';
+
+// import React from 'react';
 // const AuthApp = React.lazy(() => import('auth/App'));
+// const ChatMultiTest = React.lazy(() => import('chat/ChatMultiTest'));
+// const Layout = React.lazy(() => import('chat/Layout'));
 
 function App() {
   return (

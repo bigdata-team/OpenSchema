@@ -1,144 +1,88 @@
-import { useEffect } from "react";
-import { useChatStore } from "@/store";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router";
 
 import ChatSend from "@/components/ChatSend";
-// import Chat from "@/components/Chat";
 import ChatMulti from "@/components/ChatMulti";
 import ChatModelSelect from "@/components/ChatModelSelect";
-import { ChatAPI } from "@common/api";
+import { chatManager } from "@/model/chatManager";
+import { Chat } from "@/model/chat";
+import { modelManager } from "@/model/modelManager";
 
 function ChatMultiTest() {
+  const [searchParams] = useSearchParams();
+  let titleId = searchParams.get('id');
 
-  //let chatComponent = new Chat;
+  const [ chats, setChats ] = useState<Array<Chat>>([]);
 
-  const chats = ["abcd","bcde", "efgh"];
-  const { conversationHistory } = useChatStore();
+  const addNewChat = async (newId: string|null) => { 
+    console.log("New chat added before:", titleId, chats.length);
+    if (!titleId && newId) {
+      // New Chat
+      titleId = newId;
+    }
+    const temp = await chatManager.getChildrenByTitleId(titleId??"");
+    setChats(() => [...temp]);
+    console.log("New chat added after :", chats.length);
+  };
 
   useEffect(() => {
     console.log("ChatMultiTest mounted");
-    let cancelled = false;
+    console.log("URL params - titleId:", titleId)
+    // let cancelled = false;
+    
 
-    /*
-    const createTitle = async () => {
-      const ret = await ChatAPI.createTitle("New Title");
-      if (ret) {
-        console.log('createTitle', ret.id)
-      }
-    };
-
-    const deleteTitle = async () => {
-      const ret = await ChatAPI.deleteTitle("251027050355211441GQ05");
-      if (ret) {
-        console.log('deleteTitle', ret.id)
-      }
-    };
-
-    const updateTitle = async () => {
-      const ret = await ChatAPI.updateTitle("251027050355211441GQ05", "Updated Title");
-      if (ret) {
-        console.log('updateTitle', ret.id)
-      }
-    };
-
-    const createChat = async () => {
-      const ret = await ChatAPI.createChat("251027050355211441GQ05")
-      if (ret) {
-        console.log('createChat', ret.id)
-      }
-    };
-    */
-
-    const getChat = async () => {
-      if (cancelled) return;
-      const ret = await ChatAPI.getChat("251027000800003162xe01");
-      if (ret && !cancelled) {
-        console.log('title', ret.title)
-        for (const child of ret.children) {
-            console.log(" - child:", child.id);
-          for (const c of child.children) {
-            console.log(" -- child:", c.id, c.user_prompt);
+    const fetchData = async () => {
+      // if (!cancelled) {
+        if (!titleId) {
+          // New Chat
+          setChats([]);
+        } else {
+          let title = await chatManager.getTitleById(titleId);
+          if (!title) {
+            console.warn("Title not found in ChatManager:", titleId);
+            return;
           }
+          // if (cancelled) return;
+          const result = await chatManager.fetchChildrenForTitle(title.id);
+          // if (cancelled) return;
+          if (result) {
+          }
+
+          const chats = await chatManager.getChildrenByTitleId(titleId??"");
+          setChats(chats);
         }
-      }
+      // }
     };
-
-    /*
-    const conversations = async () => {
-      const data = {
-        "parent_id": "251028013129009387kH14",
-        "model": "openai/gpt-5",
-        "messages": [
-          {
-            "role": "user",
-            "content": "한국 수도"
-          }
-        ],
-        "stream": true,
-        "system_prompt": null,
-        "temperature": 0.7,
-        "top_p": 1,
-        "top_k": 50
-      }
-      const ret = await ChatAPI.conversations(data);
-      if (ret) {
-        console.log('conversations', ret.id)
-      }
-    };
-    */
-
-    // createTitle();
-    // deleteTitle();
-    // updateTitle();
-    // createChat();
-    // conversations();
-    getChat();
+    fetchData();
 
     // cleanup function when component unmounts
+    /*
     return () => {
       cancelled = true;
     };
-  }, []);
+    */
+  }, [titleId]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      {/* <Chat chatContentID={"abcd"}/>
-      <ChatSend targetID={["abcd"]}/> */}
-
-      {/* <div style={{ display: 'flex', gap: '16px' }}>
-        <Chat chatContentID="abcd"/>
-        <Chat chatContentID="bcde"/>
-        <Chat chatContentID="efgh"/>
-      </div>
-      <ChatSend targetID={["abcd","bcde", "efgh"]}/> */}
-
-      <div style={{ display: 'flex', gap: '16px', padding: '16px' }}>
-        <div style={{ flex: 1 }}>
-          <ChatModelSelect chatContentID="abcd" />
-        </div>
-        <div style={{ flex: 1 }}>
-          <ChatModelSelect chatContentID="bcde" />
-        </div>
-        <div style={{ flex: 1 }}>
-          <ChatModelSelect chatContentID="efgh" />
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
+      <div style={{ display: 'flex', gap: '16px', padding: '10px' }}>
+        {modelManager.models.map((model) => (
+          <div key={model.model} style={{ flex: 1 }}>
+            <ChatModelSelect model={model}/>
+          </div>
+        ))}
       </div>
 
-      <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
-        {conversationHistory.length > 0 ? (
-          // Show conversation history
-          conversationHistory.map((query, index) => (
+      <div style={{ flex: 1, overflow: 'auto', padding: '10px' }}>
+        {chats.map((chat, index) => (
+            // console.log("Rendering ChatMulti for chat:", index, chat.user_prompt, chats.length),
             <div key={index} style={{ marginBottom: '24px' }}>
-              <ChatMulti chats={chats} query={query} conversationIndex={index}/>
+              <ChatMulti titleId={titleId??""} chat={chat} modelCount={modelManager.models.length} query={chat.user_prompt??""}/>
             </div>
-          ))
-        ) : (
-          // Show current input being typed when no history
-          // <ChatMulti chats={chats}/>
-          null
-        )}
+          ))}
       </div>
       <div style={{ position: 'sticky', bottom: 0, backgroundColor: 'white' }}>
-        <ChatSend targetID={chats}/>
+        <ChatSend titleId={titleId} models={modelManager.models} onNewChat={addNewChat}/>
       </div>
     </div>
   )

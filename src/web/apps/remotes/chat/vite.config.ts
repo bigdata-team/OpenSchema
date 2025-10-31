@@ -22,11 +22,16 @@ export default defineConfig(({ mode }) => {
     "./store": "./src/store/index.ts",
     "./App": "./src/App.tsx",
     "./Counter": "./src/components/Counter.tsx",
-    "./Chat": "./src/components/Chat.tsx",
+    "./ChatOne": "./src/components/ChatOne.tsx",
     "./ChatSend": "./src/components/ChatSend.tsx",
     "./ChatMultiTest": "./src/components/ChatMultiTest.tsx",
     "./ChatMulti": "./src/components/ChatMulti.tsx",
     "./ChatModelSelect": "./src/components/ChatModelSelect.tsx",
+    "./AppSidebar": "./src/pages/layout/AppSidebar.tsx",
+    "./Layout": "./src/pages/layout/Layout.tsx",
+    "./sidebar": "./src/components/ui/sidebar.tsx",
+    "./AppSidebarProvider": "./src/pages/layout/AppSidebarProvider.tsx",
+    "./model": "./src/model/index.ts",
   };
 
   ///////////////////////////////

@@ -1,25 +1,22 @@
 import React from 'react';
+import { useNavigate } from 'react-router';
 import type { ChangeEvent, KeyboardEvent } from "react";
-import { Config } from '@common/config';
 import "@/index.css";
-import { useChatStore } from '@/store';
-import { addToChatHistory, updateLatestResponse } from '@/model/chat';
+import { chatManager } from '@/model/chatManager';
+import { Chat } from '@/model/chat';
+import { ChatAPI } from "@common/api";
+import type { Model } from '@/model/model';
 
 
-export async function processChat(str: string, targetID: string, model: string, modelName: string, conversationIndex: number, chatStore: ReturnType<typeof useChatStore.getState>) {
+export async function processChat(modelChat: Chat, user_prompt: string, modelIndex: number, model: string) {
 
-    console.log("processChat:using model:", model, targetID, modelName, "conversation:", conversationIndex);
+    console.log("processChat: model:", model, modelIndex);
 
     // const url = `https://api.openai.com/v1/chat/completions`
-    // TODO
-    const url = `${Config.value("API_GATEWAY_URL")}/api/v1/chat/completions`;
     // const url = `${Config.value("API_GATEWAY_URL")}/api/v1/chat/conversations`;
 
-    // Start streaming for this chat with conversation index
-    chatStore.startStreaming(targetID, conversationIndex);
-
     try {
-        // Start the fetch - this happens in parallel for all chats
+        /*
         const response = await fetch(url, {
             method: `POST`,
             headers: {
@@ -32,25 +29,41 @@ export async function processChat(str: string, targetID: string, model: string, 
                 messages:[
                     {
                         role:"user",
-                        content:str
+                        content:user_prompt
                     }
                 ],
                 stream:true
             }),
         });
+        */
+       const response = await ChatAPI.conversations(
+            {
+                //
+                parent_id: modelChat.parent_id,
+                index: modelChat.index,
+                //
+                model: model,
+                messages:[
+                    {
+                        role:"user",
+                        content:user_prompt
+                    }
+                ],
+                stream:true
+            },
+        );
 
         const reader = response.body?.getReader();
         if(!reader)
         {
-            chatStore.updateStreamingMessage(targetID, `error at ${targetID} #1`, conversationIndex);
-            chatStore.stopStreaming(targetID, conversationIndex);
+            modelChat.answer = `error at ${modelIndex} #1`;
             return "error";
         }
 
         const decoder = new TextDecoder("utf-8");
         let buffer = "";
 
-        // Process the stream - this now runs independently for each chat
+        // 
         const processStream = async () => {
             while (true) {
                 const { done, value } = await reader.read();
@@ -71,7 +84,7 @@ export async function processChat(str: string, targetID: string, model: string, 
                     const data = trimmed.replace(/^data:\s*/, "");
 
                     if (data === "[DONE]") {
-                        console.log(`\n✅ 스트리밍 완료! (${targetID})`);
+                        console.log(`\n✅ 스트리밍 완료! (${modelIndex})`);
                         break;
                     }
 
@@ -79,21 +92,17 @@ export async function processChat(str: string, targetID: string, model: string, 
                         const json = JSON.parse(data);
                         const delta = json.choices?.[0]?.delta?.content;
                         if (delta) {
-                            // Update streaming message in store
-                            console.log(targetID, delta);
-                            chatStore.updateStreamingMessage(targetID, delta, conversationIndex);
-
-                            // Update chat history with streaming response
-                            updateLatestResponse(targetID, modelName, model, delta);
+                            // console.log(modelIndex, delta);
+                            if (modelChat.answer == null) {
+                                modelChat.answer = "";
+                            }
+                            modelChat.answer += delta;
                         }
                     } catch (err) {
-                        console.error(`Error parsing stream data for ${targetID}:`, err);
+                        console.error(`Error parsing stream data for ${modelIndex}:`, err);
                     }
                 }
             }
-
-            // Stop streaming when done
-            chatStore.stopStreaming(targetID, conversationIndex);
         };
 
         // Don't await here - let it run independently
@@ -102,94 +111,105 @@ export async function processChat(str: string, targetID: string, model: string, 
         // Return immediately so other streams can start
         return "streaming...";
     } catch (error) {
-        console.error(`Error in processChat for ${targetID}:`, error);
-        chatStore.updateStreamingMessage(targetID, `error: ${error}`, conversationIndex);
-        chatStore.stopStreaming(targetID, conversationIndex);
+        console.error(`Error in processChat for ${modelIndex}:`, error);
+        modelChat.answer = `error at ${modelIndex}: ${error}`;
         return "error";
     }
 }
 
 export default function ChatSend({
-    targetID
+    titleId,
+    models,
+    onNewChat
 }:{
-    targetID:Array<string>;
+    titleId:string | null;
+    models:Array<Model>;
+    onNewChat?: (titleId: string | null) => void;
 })
 {
-    // Get models and chat store (now all from useChatStore)
-    const { models, setCurrentInput, addConversation } = useChatStore();
+    const navigate = useNavigate();
 
-    let [message,setMessage] = React.useState("");
+    let [ userPrompt, setUserPrompt ] = React.useState("");
 
     const isProcessingRef = React.useRef(false);
 
     const handleMessageInput = (e:ChangeEvent<HTMLTextAreaElement>) => {
         const valueWithoutNewlines = e.target.value.replace(/\n/g, '');
-        // setCurrentInput(valueWithoutNewlines);
-        setMessage(valueWithoutNewlines);
+        setUserPrompt(valueWithoutNewlines);
     }
 
-    async function processKeyboardInput(event:KeyboardEvent)
-    {
-        console.log('TODO >>> event:', event);
-        if(event.key == "Enter" && event.shiftKey == false)
-        {
-            // Prevent default behavior and stop propagation immediately
-            event.preventDefault();
-            event.stopPropagation();
+    async function handleClick() {
+        processInput();
+    }
 
-            // Prevent double execution
-            if (isProcessingRef.current) {
-                console.log('Already processing, skipping...');
-                return;
-            }
+    async function handleEnter(event:KeyboardEvent) {
+        // Prevent default behavior and stop propagation immediately
+        event.preventDefault();
+        event.stopPropagation();
+        if(event.key == "Enter" && event.shiftKey == false) {
+            processInput();
+        }
+    }
 
-            // Don't process if message is empty
-            if (!message.trim()) {
-                return;
-            }
+    async function processInput() {
+        if (!userPrompt.trim()) {
+            return;
+        }
 
-            setCurrentInput(message);
+        // Prevent double execution
+        if (isProcessingRef.current) {
+            console.log('Already processing, skipping...');
+            return;
+        }
+         // Set processing flag
+        isProcessingRef.current = true;
 
-            // Add to conversation history
-            addConversation(message);
+        let chatTitleId: string = titleId || "";
+        if (!titleId) {
+            // new chat
+            const title = await chatManager.createNewTitle(userPrompt);
+            chatTitleId = title.id;
+        } 
 
-            // Add to chat history (for saving)
-            addToChatHistory(message, {});
+        const title = await chatManager.getTitleById(chatTitleId);
+        if (!title) {
+            console.error("Title not found in ChatManager:", chatTitleId);
+            return;
+        }
+        const data = await ChatAPI.createChat(chatTitleId, userPrompt);
+        const newChat = new Chat(data);
+        if (!newChat) {
+            console.error("Failed to create newChat for chatTitleId:", chatTitleId);
+            return;
+        }
+        await chatManager.addChildByTitileId(chatTitleId, newChat);
 
-            // Set processing flag
-            isProcessingRef.current = true;
+        // Add newChat to parent component's state
+        if (onNewChat) {
+            onNewChat(chatTitleId);
+        }
 
-            try {
-                // Get chat store instance
-                const chatStore = useChatStore.getState();
+        if (!titleId) {
+            navigate(`/chat?id=${chatTitleId}`);
+        }
 
-                // Get current conversation index before starting
-                const currentConvIndex = chatStore.currentConversationIndex;
-
-                // Start processing all chats in parallel
-                let promiseList = targetID.map((id) => {
-                    const model = models[id];
-                    if (model) {
-                        // Get model name from chatting data
-                        const modelName = Object.keys(models).find(key => models[key] === model) || id;
-                        return processChat(message, id, model, modelName, currentConvIndex, chatStore);
-                    } else {
-                        console.error(`No model found for target ID: ${id}`);
-                    }
+        try {
+            let promiseList = models.map((model, index) => {
+                const modelChat = new Chat({
+                    parent_id: newChat.id, 
+                    index: index,
+                    answer: null, 
+                    user_prompt:userPrompt,
+                    model_name: model.model,
                 });
-                await Promise.all(promiseList);
+                newChat.addChild(modelChat);
+                return processChat(modelChat, userPrompt, index, model.model);
+            });
+            await Promise.all(promiseList);
 
-                // Increment conversation index for next conversation
-                useChatStore.setState((state) => ({
-                    currentConversationIndex: state.currentConversationIndex + 1
-                }));
-
-                setMessage("");
-                setCurrentInput(""); // Clear current input to prevent duplicate display
-            } finally {
-                // Reset processing flag
-                isProcessingRef.current = false;
-            }
+            setUserPrompt("");
+        } finally {
+            isProcessingRef.current = false;
         }
     }
 
@@ -218,7 +238,7 @@ export default function ChatSend({
                 />
                 <textarea
                     rows={1}
-                    value={message}
+                    value={userPrompt}
                     className="bg-surface-primary box-border w-full flex-none resize-none focus:outline-none active:outline-none max-h-[40vh] p-1 md:p-3"
                     name="message"
                     autoComplete="off"
@@ -227,7 +247,7 @@ export default function ChatSend({
                     data-sentry-source-file="evaluation-form.tsx"
                     style={{ height: "48px !important" }}
                     onChange={handleMessageInput}
-                    onKeyDown={processKeyboardInput}
+                    onKeyUp={handleEnter}
                 />
                 <div className="flex justify-between gap-4">
                 <div className="mr-1 flex h-8 flex-none gap-2">
@@ -312,7 +332,6 @@ export default function ChatSend({
                         >
                         <g
                             stroke="currentColor"
-                            transform-origin="12.013019561767578px 14.971955299377441px"
                             style={{
                             transform: "none",
                             transformOrigin: "12.013px 14.972px"
@@ -329,7 +348,6 @@ export default function ChatSend({
                             strokeLinejoin="round"
                             fill="transparent"
                             stroke="currentColor"
-                            transform-origin="16.007304191589355px 7.379882335662842px"
                             style={{
                             transform: "none",
                             transformOrigin: "16.0073px 7.37988px"
@@ -339,11 +357,12 @@ export default function ChatSend({
                     </button>
                     </div>
                     <button
-                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ring-offset-2 focus-visible:ring-offset-surface-primary disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 h-8 w-8 active:bg-interactive-cta-active opacity-50 pointer-events-none bg-header-primary hover:bg-header-primary/90 text-interactive-on-cta"
-                    disabled={false}
+                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ring-offset-2 focus-visible:ring-offset-surface-primary disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 h-8 w-8 active:bg-interactive-cta-active bg-header-primary hover:bg-header-primary/90 text-interactive-on-cta cursor-pointer"
+                    disabled={userPrompt.trim().length === 0 || isProcessingRef.current}
                     type="submit"
                     data-sentry-element="Button"
                     data-sentry-source-file="evaluation-form.tsx"
+                    onClick={handleClick}
                     >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
