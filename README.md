@@ -58,3 +58,78 @@ VITE_API_GATEWAY_URL=http://openschema-local-api.elpai.org
 VITE_UI_GATEWAY_URL=http://openschema-local-ui.elpai.org
 ```
 
+### JWT token 
+
+#### Auth flow
+```
+  ─────────────────────────────────
+   elpai-auth                      
+   JWT 발급 & 공개키 제공              
+                                    
+   Keys: private.pem (서명 생성)    
+         public.pem  (검증용)        
+  ─────────────────────────────────
+              │
+              │ JWT 발급
+              ▼
+  ─────────────────────────────────
+   브라우저                         
+   Cookie: ELPAI_JWT               
+  ─────────────────────────────────
+              │
+              │ 요청 (JWT 포함)
+              ▼
+  ─────────────────────────────────
+   elpai-gateway                   
+   [1차 검증]                        
+                                   
+   ✓ JWT 서명 검증 (RS256)           
+   ✓ 만료시간 검증                    
+   ✓ X-Auth-* 헤더 주입            
+  ─────────────────────────────────
+              │
+              │ 헤더 + JWT
+              ▼
+  ─────────────────────────────────
+   OpenSchema Backend              
+   [2차 검증]           
+                                    
+   ✓ JWT 재검증 (RS256)            
+   ✓ 헤더-JWT 일치 확인            
+   ✓ Gateway 우회 공격 차단        
+   ✓ 한글 이름 복원                
+  ─────────────────────────────────
+              │
+              ▼
+  ─────────────────────────────────
+   PostgreSQL (사용자 정보)           
+  ─────────────────────────────────
+```
+
+#### Architecture(OpenRouter 통합) 
+```
+├── elpai-auth/                              # 인증 서버
+  │   └── src/main/resources/keys/
+  │       └── key-YYYYMMDD-HHMMSS/
+  │           ├── private.pem                   # JWT 서명 생성 (비공개)
+  │           └── public.pem                    # JWT 검증 (공개)
+  │
+  ├── elpai-gateway/                            # API Gateway
+  │   └── src/main/kotlin/.../filter/
+  │       └── JwtAuthenticationGatewayFilterFactory.kt  # 1차 JWT 검증
+  │
+  └── OpenSchema/                               # 백엔드
+      ├── src/common/
+      │   ├── security/
+      │   │   └── jwt_validator.py             # JWT 검증 로직 (RS256)
+      │   └── dependencies/
+      │       └── gateway_auth.py              # 2차 검증 + 헤더 비교
+      │
+      └── src/service/auth/
+          └── router/public/
+              └── public.py                     # /me API (사용자 정보)
+```
+#### JWT Endpoint
+```
+http://host.docker.internal:8080/api/oauth2/.well-known/jwks.json
+```
