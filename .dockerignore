@@ -1,4 +1,11 @@
 node_modules
+**/node_modules
+**/.pnpm-store
 .git
 .gitignore
 *.md
+.env
+.env.*
+dist
+build
+.DS_Store

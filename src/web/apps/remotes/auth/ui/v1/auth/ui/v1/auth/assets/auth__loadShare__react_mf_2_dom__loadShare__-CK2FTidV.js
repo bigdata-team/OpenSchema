@@ -1,1 +1,0 @@
-import{a as _,b as a}from"./auth__mf_v__runtimeInit__mf_v__-DhErAgM8.js";const{loadShare:o}=a,{initPromise:t}=_,r=t.then(e=>o("react-dom",{customShareInfo:{shareConfig:{singleton:!1,strictVersion:void 0,requiredVersion:"^19.2.0"}}})),n=await r.then(e=>e());var i=n;export{i as a};

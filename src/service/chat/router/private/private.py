@@ -62,7 +62,7 @@ async def list_chat_title(service: ChatService = Depends(ChatService)):
 @router.post("/")
 async def create_chat(req_body: ChatCreateRequest,service: ChatService = Depends(ChatService)):
     print(f"TODO >>> chat create")
-    data = await service.create_chat(parent_id = req_body.parent_id)
+    data = await service.create_chat(parent_id = req_body.parent_id, user_prompt = req_body.user_prompt)
     return create_response(data=data)
 
 @router.get("/")

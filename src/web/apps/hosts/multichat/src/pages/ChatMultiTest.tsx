@@ -1,98 +1,96 @@
 import React from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router";
 
-// import { ChatAPI } from "@/api/chat" 
-import { ChatAPI } from "@common/api";
+/*
+import ChatSend from "@/components/ChatSend";
+import ChatMulti from "@/components/ChatMulti";
+import ChatModelSelect from "@/components/ChatModelSelect";
+import { chatManager } from "@/model/chatManager";
+import { Chat } from "@/model/chat";
+import { modelManager } from "@/model/modelManager";
+*/
 
-import { useChatStore } from 'chat/store'
-const ChatMulti = React.lazy(() => import('chat/ChatMulti'));
 const ChatSend = React.lazy(() => import('chat/ChatSend'));
+const ChatMulti = React.lazy(() => import('chat/ChatMulti'));
 const ChatModelSelect = React.lazy(() => import('chat/ChatModelSelect'));
+import { Chat, chatManager, modelManager } from 'chat/model'
 
 function ChatMultiTest() {
+  const [searchParams] = useSearchParams();
+  let titleId = searchParams.get('id');
 
-  //let chatComponent = new Chat;
+  const [ chats, setChats ] = useState<Array<typeof Chat>>([]);
 
-  const chats = ["abcd","bcde", "efgh"];
-  const { conversationHistory } = useChatStore();
+  const addNewChat = async (newId: string|null) => { 
+    console.log("New chat added before:", titleId, chats.length);
+    if (!titleId && newId) {
+      // New Chat
+      titleId = newId;
+    }
+    const temp = await chatManager.getChildrenByTitleId(titleId??"");
+    setChats(() => [...temp]);
+    console.log("New chat added after :", chats.length);
+  };
 
   useEffect(() => {
-    let cancelled = false;
+    console.log("ChatMultiTest mounted");
+    console.log("URL params - titleId:", titleId)
+    // let cancelled = false;
+    
 
-    const listTitle = async () => {
-      if (cancelled) return;
-      const ret = await ChatAPI.listTitle()
-      if (!cancelled && ret) {
-        for (const r of ret) {
-          console.log('title: title', r.title);
-        }
-      }
-    };
-    listTitle();
-
-    const getChat = async () => {
-      if (cancelled) return;
-      const ret = await ChatAPI.getChat("251027000800003162xe01");
-      if (!cancelled && ret) {
-        console.log('chat title', ret.title)
-        for (const child of ret.children) {
-            console.log(" - child:", child.id);
-          for (const c of child.children) {
-            console.log(" -- child:", c.id, c.user_prompt);
+    const fetchData = async () => {
+      // if (!cancelled) {
+        if (!titleId) {
+          // New Chat
+          setChats([]);
+        } else {
+          let title = await chatManager.getTitleById(titleId);
+          if (!title) {
+            console.warn("Title not found in ChatManager:", titleId);
+            return;
           }
+          // if (cancelled) return;
+          const result = await chatManager.fetchChildrenForTitle(title.id);
+          // if (cancelled) return;
+          if (result) {
+          }
+
+          const chats = await chatManager.getChildrenByTitleId(titleId??"");
+          setChats(chats);
         }
-      }
+      // }
     };
-    getChat();
+    fetchData();
 
     // cleanup function when component unmounts
+    /*
     return () => {
       cancelled = true;
-    }
-  }, []);
+    };
+    */
+  }, [titleId]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      {/* <Chat chatContentID={"abcd"}/>
-      <ChatSend targetID={["abcd"]}/> */}
-
-      {/* <div style={{ display: 'flex', gap: '16px' }}>
-        <Chat chatContentID="abcd"/>
-        <Chat chatContentID="bcde"/>
-        <Chat chatContentID="efgh"/>
-      </div>
-      <ChatSend targetID={["abcd","bcde", "efgh"]}/> */}
-
-      <div style={{ display: 'flex', gap: '16px', padding: '16px' }}>
-        <div style={{ flex: 1 }}>
-          <ChatModelSelect chatContentID="abcd" />
-        </div>
-        <div style={{ flex: 1 }}>
-          <ChatModelSelect chatContentID="bcde" />
-        </div>
-        <div style={{ flex: 1 }}>
-          <ChatModelSelect chatContentID="efgh" />
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
+      <div style={{ display: 'flex', gap: '16px', padding: '10px' }}>
+        {modelManager.models.map((model: any) => (
+          <div key={model.model} style={{ flex: 1 }}>
+            <ChatModelSelect model={model}/>
+          </div>
+        ))}
       </div>
 
-      <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
-        {conversationHistory.length > 0 ? (
-          // Show conversation history
-          conversationHistory.map((query:any, index:any) => (
+      <div style={{ flex: 1, overflow: 'auto', padding: '10px' }}>
+        {chats.map((chat, index) => (
+            // console.log("Rendering ChatMulti for chat:", index, chat.user_prompt, chats.length),
             <div key={index} style={{ marginBottom: '24px' }}>
-              <React.Suspense fallback={<div>Loading Remote App...</div>}>
-                <ChatMulti chats={chats} query={query} conversationIndex={index}/>
-              </React.Suspense>
+              <ChatMulti titleId={titleId??""} chat={chat} modelCount={modelManager.models.length} query={chat.user_prompt??""}/>
             </div>
-          ))
-        ) : (
-          // Show current input being typed when no history
-          // <ChatMulti chats={chats}/>
-          null
-        )}
+          ))}
       </div>
       <div style={{ position: 'sticky', bottom: 0, backgroundColor: 'white' }}>
-        <ChatSend targetID={chats}/>
+        <ChatSend titleId={titleId} models={modelManager.models} onNewChat={addNewChat}/>
       </div>
     </div>
   )

@@ -1,1 +1,0 @@
-import{c as r}from"./counter-C-CjsEyt.js";import{u as i}from"./counter-C-CjsEyt.js";import"./auth__loadShare__react__loadShare__-CumOJFn7.js";import"./_commonjsHelpers-CqkleIqs.js";import"./auth__mf_v__runtimeInit__mf_v__-DhErAgM8.js";const m=r(o=>({count:0,decrement:()=>o(t=>({count:t.count-1}))}));export{m as useCountdown,i as useCounter};

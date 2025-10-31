@@ -80,12 +80,13 @@ export class ChatAPI {
         return null;
     }
 
-    static async createChat(parentId: string) {
+    static async createChat(parentId: string, userPrompt: string) {
         try {
           const res = await Http.post(
             `${address}`,
             {
               parent_id: parentId,
+              user_prompt: userPrompt,
             }
           );
           if (res.status !== 200) {
@@ -117,19 +118,28 @@ export class ChatAPI {
 
     static async conversations(data: Object) {
         try {
-          const res = await Http.post(
-            `${address}/conversations`,
-            data,
-          );
-          if (res.status !== 200) {
-            throw new Error(`Response status is "${res.status}"`);
+          // Get the auth token
+          const token = Config.value("TEMP_ACCESS_TOKEN");
+
+          const response = await fetch(`${address}/conversations`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(data),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Response status is "${response.status}"`);
           }
 
-          return res.data.data
+          // Return the response for external stream processing
+          return response;
         } catch (e) {
-          console.error('get error', e)
-        } 
-        return null;
+          console.error('conversations error', e);
+          throw e;
+        }
     }
 }
 

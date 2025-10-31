@@ -15,9 +15,29 @@ export default function Layout() {
 }
 */
 
+import React from "react";
 import { Outlet } from 'react-router';
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { AppSidebar } from "./app-sidebar"
+// import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+
+// TODO import { AppSidebar } from "./app-sidebar"
+// import { AppSidebar } from "./AppSidebar";
+// when export default
+// const AppSidebar = React.lazy(() => import('chat/AppSidebar')); // when export default
+// when not export default
+/*
+const AppSidebar = React.lazy(() =>
+  import('chat/AppSidebar').then(module => ({ default: module.AppSidebar }))
+);
+const SidebarProvider = React.lazy(() =>
+  import('chat/sidebar').then(module => ({ default: module.SidebarProvider }))
+);
+const SidebarTrigger = React.lazy(() =>
+  import('chat/sidebar').then(module => ({ default: module.SidebarTrigger }))
+);
+*/
+const AppSidebarProvider = React.lazy(() =>
+  import('chat/AppSidebarProvider').then(module => ({ default: module.AppSidebarProvider }))
+);
 
 export default function Layout() {
   return (
@@ -29,14 +49,23 @@ export default function Layout() {
       }}
     >
     */
-    <SidebarProvider>
-      <AppSidebar />
-      <main>
-        <SidebarTrigger />
-        <div style={{ padding: "1rem" }}>
-          <Outlet />
-        </div>
-      </main>
-    </SidebarProvider>
+   /*
+    <React.Suspense fallback={<div>Loading...</div>}>
+      <SidebarProvider>
+        <AppSidebar />
+        <main>
+          <SidebarTrigger />
+          <div style={{ padding: "0rem" }}>
+            <Outlet />
+          </div>
+        </main>
+      </SidebarProvider>
+    </React.Suspense>
+    */
+   <AppSidebarProvider>
+      <div style={{ padding: "0rem" }}>
+        <Outlet />
+      </div>
+    </AppSidebarProvider>
   )
 }

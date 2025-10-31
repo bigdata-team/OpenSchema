@@ -9,6 +9,7 @@ class Message(BaseModel):
 
 class ChatCompletionRequest(BaseModel):
     parent_id : str
+    index: int = 0
     model: str = "openai/gpt-5"
     messages: list[Message]
     stream: bool = True
@@ -29,6 +30,7 @@ class ChatTitleDeleteRequest(BaseModel):
 
 class ChatCreateRequest(BaseModel):
     parent_id: str
+    user_prompt: str
 
 class ChatListRequest(BaseModel):
     id : str 
@@ -40,6 +42,7 @@ class ChatChild(BaseModel):
     #
     parent_id: str | None
     title: str | None
+    index: int | None
     #
     user_id: str | None
     service_id: str | None
@@ -65,6 +68,7 @@ class ChatResponse(BaseModel):
     #
     parent_id: str | None
     title: str | None
+    index: int | None
     #
     user_id: str | None
     service_id: str | None

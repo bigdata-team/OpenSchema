@@ -8,7 +8,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@common/*": ["../../../common/*"]
+      // TODO "@common/*": ["../../../common/*"]
+      "@common/*": ["@common/*"]
     }
   }
 }

@@ -1,0 +1,1 @@
+export { default as qwenIcon } from '../public/qwen.png';
