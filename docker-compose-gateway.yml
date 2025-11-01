@@ -1,0 +1,14 @@
+services:
+  gateway:
+    build:
+      context: docker/gateway
+    ports:
+      - 80:80
+    #depends_on:
+    #  - mcp
+    #  - chat
+    #  - auth
+
+networks:
+  shared-net:
+    name: net
