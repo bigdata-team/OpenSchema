@@ -83,7 +83,7 @@ export class ChatAPI {
     static async createChat(parentId: string, userPrompt: string) {
         try {
           const res = await Http.post(
-            `${address}`,
+            `${address}/chat`,
             {
               parent_id: parentId,
               user_prompt: userPrompt,
@@ -103,7 +103,7 @@ export class ChatAPI {
     static async getChat(chatId: string) {
         try {
           const res = await Http.get(
-            `${address}?id=${chatId}`,
+            `${address}/chat?id=${chatId}`,
           );
           if (res.status !== 200) {
             throw new Error(`Response status is "${res.status}"`);
@@ -121,14 +121,17 @@ export class ChatAPI {
           // Get the auth token
           const token = Config.value("TEMP_ACCESS_TOKEN");
 
-          const response = await fetch(`${address}/conversations`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify(data),
-          });
+          const response = await fetch(
+           `${address}/conversations`, 
+	   {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+              },
+              body: JSON.stringify(data),
+            }
+          );
 
           if (!response.ok) {
             throw new Error(`Response status is "${response.status}"`);
