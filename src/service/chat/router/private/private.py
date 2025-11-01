@@ -59,13 +59,15 @@ async def list_chat_title(service: ChatService = Depends(ChatService)):
 
 
 ####################################################################################################
-@router.post("/")
+# @router.post("/") # WARNING: nerver use that because of "307 Temporary Redirect"
+@router.post("/chat")
 async def create_chat(req_body: ChatCreateRequest,service: ChatService = Depends(ChatService)):
     print(f"TODO >>> chat create")
     data = await service.create_chat(parent_id = req_body.parent_id, user_prompt = req_body.user_prompt)
     return create_response(data=data)
 
-@router.get("/")
+# @router.get("/") # WARNING: nerver use that because of "307 Temporary Redirect"
+@router.get("/chat")
 async def get_chat_with_children(params: ChatListRequest = Depends(),service: ChatService = Depends(ChatService)):
     print(f"TODO >>> chat get")
     data = await service.get_chat_with_children(id = params.id)
