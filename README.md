@@ -9,7 +9,7 @@ docker compose --env-file .env.dev -f docker-compose-gateway.yaml up
 ```
 
 ```
-npm run dev
+pnpm run dev
 ```
 
 ## ui library
