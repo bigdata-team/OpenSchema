@@ -1,13 +1,13 @@
 services:
-  reverse-proxy:
-    build:
-      context: docker/gateway
-    ports:
-      - 80:80
-    #depends_on:
-    #  - mcp
-    #  - chat
-    #  - auth
+  #reverse-proxy:
+  #  build:
+  #    context: docker/gateway
+  #  ports:
+  #    - 80:80
+  #  #depends_on:
+  #  #  - mcp
+  #  #  - chat
+  #  #  - auth
 
   remote-auth-ui:
     build:
