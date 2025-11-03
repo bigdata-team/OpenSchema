@@ -32,8 +32,8 @@ interface AuthProviderProps {
 
 export function AuthProvider({
   children,
-  gatewayUrl = 'http://openschema-local-ui.elpai.org:7070',
-  authUrl = 'http://openschema-local-ui.elpai.org:8080',
+  gatewayUrl = import.meta.env.VITE_API_GATEWAY_URL,
+  authUrl = import.meta.env.VITE_AUTH_URL,
   requireAuth = false
 }: AuthProviderProps) {
   const [authState, setAuthState] = useState<AuthState>({
