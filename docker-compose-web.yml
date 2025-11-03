@@ -17,11 +17,13 @@ services:
         - SERVICE_DIR=remotes/auth
         - VITE_API_GATEWAY_URL=${VITE_API_GATEWAY_URL}
         - VITE_UI_GATEWAY_URL=${VITE_UI_GATEWAY_URL}
+        - VITE_AUTH_URL=${VITE_AUTH_URL}
     env_file:
       - .env.dev
     environment:
       - VITE_API_GATEWAY_URL=${VITE_API_GATEWAY_URL}
       - VITE_UI_GATEWAY_URL=${VITE_UI_GATEWAY_URL}
+      - VITE_AUTH_URL=${VITE_AUTH_URL}
     
 
   remote-chat-ui:
