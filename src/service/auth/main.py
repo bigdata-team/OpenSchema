@@ -22,13 +22,14 @@ app = FastAPI(
 )
 
 app.add_middleware(CorrelationIdMiddleware)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# CORS는 elpai-gateway에서 처리하므로 비활성화
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 
 app.include_router(public_router, prefix="")
 app.include_router(private_router, prefix="")

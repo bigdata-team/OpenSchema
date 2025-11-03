@@ -32,7 +32,7 @@ interface AuthProviderProps {
 
 export function AuthProvider({
   children,
-  gatewayUrl = import.meta.env.VITE_API_GATEWAY_URL,
+  gatewayUrl = import.meta.env.VITE_AUTH_GATEWAY_URL,
   authUrl = import.meta.env.VITE_AUTH_URL,
   requireAuth = false
 }: AuthProviderProps) {
