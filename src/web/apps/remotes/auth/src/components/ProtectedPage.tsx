@@ -3,16 +3,16 @@ import { UserProfile } from './UserProfile';
 import { useEffect } from 'react';
 
 export function ProtectedPage() {
-  const { user, isInitializing, authError, logout } = useAuth();
+  const { user, isInitializing, authError, logout, login } = useAuth();
 
   // 이 페이지는 인증이 필요하므로 자동 리다이렉트
   useEffect(() => {
     if (!isInitializing && !user) {
       const currentUrl = window.location.href;
       console.log('[ProtectedPage] Not authenticated, redirecting to login with redirect_uri:', currentUrl);
-      window.location.href = `http://auth-local.elpai.org:8080/sign-in?redirect_uri=${encodeURIComponent(currentUrl)}`;
+      login(currentUrl);
     }
-  }, [isInitializing, user]);
+  }, [isInitializing, user, login]);
 
   // 로딩 중
   if (isInitializing) {

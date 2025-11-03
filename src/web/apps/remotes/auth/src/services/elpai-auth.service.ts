@@ -20,7 +20,7 @@ class ElpaiAuthService {
   private authInstance: ElpaiAuthInstance | null = null;
   private isInitialized = false;
 
-  constructor(authUrl: string = 'http://openschema-local-ui.elpai.org:8080') {
+  constructor(authUrl: string = import.meta.env.VITE_AUTH_URL) {
     this.authUrl = authUrl;
   }
 
