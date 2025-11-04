@@ -9,7 +9,7 @@ export class AuthAPI {
           const res = await Http.get(
             `${address}/login`,
 	    {
-		withCredentials: true
+		    withCredentials: true
 	    },
           );
           if (res.status !== 200) {
@@ -49,7 +49,7 @@ export class AuthAPI {
           const res = await Http.get(
             `${address}/refresh`,
 	    {
-		withCredentials: true
+		    withCredentials: true
 	    },
           );
           if (res.status !== 200) {
