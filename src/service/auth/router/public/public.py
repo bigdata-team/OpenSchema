@@ -30,7 +30,8 @@ async def signin(body: SignInRequest, service: SignInService = Depends(SignInSer
 @router.get("/signin/sso", response_model=DataBody[User])
 async def get_me(
     request: Request,
-    gateway_user: dict = Depends(get_gateway_auth_dependency(strict=True)),
+    # TODO gateway_user: dict = Depends(get_gateway_auth_dependency(strict=True)),
+    gateway_user: dict = Depends(get_gateway_auth_dependency(strict=False)),
     repo: UserRepository = Depends(UserRepository),
     service: SignInService = Depends(SignInService),
 ):

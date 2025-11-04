@@ -1,5 +1,7 @@
 from fastapi import HTTPException, Request
 from common.security.jwt_validator import get_jwt_validator
+# TODO
+from common.config.const import ELPAI_AUTH_URL
 
 
 def get_gateway_auth_dependency(strict: bool = True):
@@ -77,14 +79,22 @@ def get_gateway_auth_dependency(strict: bool = True):
         if jwt_token:
             try:
                 # JWT 서명 검증 (elpai-gateway와 동일한 방식)
-                jwt_validator = get_jwt_validator()
+                # TODO
+                # jwt_validator = get_jwt_validator()
+                jwt_validator = get_jwt_validator(auth_url=ELPAI_AUTH_URL)
                 payload = jwt_validator.validate_token(jwt_token)
 
                 # 3. Gateway 헤더와 JWT 내용 일치 확인 (보안)
                 jwt_user_id = payload.get("sub")
                 jwt_email = payload.get("email")
+                # TODO
+                jwt_name = payload.get("name")
+                jwt_role = payload.get("role")
+                jwt_idp_cd = payload.get("idp_cd")
 
-                if user_id != jwt_user_id or email != jwt_email:
+                # TODO
+                # if user_id != jwt_user_id or email != jwt_email:
+                if strict and (user_id != jwt_user_id or email != jwt_email):
                     print(f"[Gateway Auth] Header-JWT mismatch detected!")
                     print(f"[Gateway Auth] Header: user_id={user_id}, email={email}")
                     print(f"[Gateway Auth] JWT: sub={jwt_user_id}, email={jwt_email}")
@@ -92,6 +102,13 @@ def get_gateway_auth_dependency(strict: bool = True):
                         status_code=401,
                         detail="Header-JWT mismatch - potential attack detected"
                     )
+                
+                # TODO
+                user_id = jwt_user_id
+                email = jwt_email
+                name = jwt_name
+                role = jwt_role
+                idp_cd = jwt_idp_cd
 
                 # 4. JWT에서 한글 이름/프로필 사진 추출 (Gateway 헤더는 깨짐)
                 name = payload.get("name", name)
