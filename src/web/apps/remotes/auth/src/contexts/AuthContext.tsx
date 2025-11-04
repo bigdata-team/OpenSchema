@@ -68,7 +68,7 @@ export function AuthProvider({
 
         // Gateway를 통해 OpenSchema DB에 사용자 동기화
         try {
-            const response = await fetch(`${gatewayUrl}/api/v1/auth/me`, {
+            const response = await fetch(`${gatewayUrl}/api/v1/auth/signin/sso`, {
               credentials: 'include',
               headers: {
                 'Accept': 'application/json',
@@ -77,7 +77,7 @@ export function AuthProvider({
             });
 
             // 401/403은 인증 실패, SDK 캐시 초기화 필요
-            if (response.status === 401 || response.status === 403) {
+            if (!response || response.status === 401 || response.status === 403) {
               console.log('[AuthProvider] Gateway auth failed, clearing SDK cache');
               authService.clearCache();
               setAuthState({

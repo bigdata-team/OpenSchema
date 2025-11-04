@@ -27,7 +27,7 @@ async def signin(body: SignInRequest, service: SignInService = Depends(SignInSer
     return await service.signin(body.email, body.password)
 
 
-@router.get("/me", response_model=DataBody[User])
+@router.get("/signin/sso", response_model=DataBody[User])
 async def get_me(
     request: Request,
     gateway_user: dict = Depends(get_gateway_auth_dependency(strict=True)),
@@ -92,5 +92,6 @@ async def get_me(
         )
         user = await repo.create(user)
 
+    print(f"TODO >>> return signinBySSO for user id {user.id}")
     return await service.signinBySSO(user.id)
     # TODO return create_response(data=user)

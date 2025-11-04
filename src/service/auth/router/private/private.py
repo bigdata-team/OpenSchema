@@ -24,8 +24,10 @@ async def signout(service: SignOutService = Depends(SignOutService)):
     return await service.signout()
 
 
+""" TODO
 @router.get("/me", response_model=DataBody[User])
 async def me(
     service: MeService = Depends(MeService),
 ):
     return await service.info()
+"""

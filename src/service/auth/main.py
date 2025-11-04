@@ -22,7 +22,6 @@ app = FastAPI(
 )
 
 app.add_middleware(CorrelationIdMiddleware)
-# CORS는 elpai-gateway에서 처리하므로 비활성화
 # app.add_middleware(
 #     CORSMiddleware,
 #     allow_origins=["*"],

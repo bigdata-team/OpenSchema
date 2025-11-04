@@ -8,8 +8,6 @@ export class AuthAPI {
         try {
           const res = await Http.get(
             `${address}/login`,
-            {
-            }
           );
           if (res.status !== 200) {
             throw new Error(`Response status is "${res.status}"`);
@@ -21,6 +19,28 @@ export class AuthAPI {
         } 
         return null;
     }
+
+    /*
+    static async signinBySSO() {
+        try {
+          const res = await Http.get(
+            `${address}/signin/sso`,
+            {
+              withCredentials: true,
+            }
+          );
+          if (res.status !== 200) {
+            throw new Error(`Response status is "${res.status}"`);
+          }
+
+          return res.data.data
+        } catch (e) {
+          console.error('me error', e)
+        } 
+        return null;
+    }
+    */
+
     static async refresh() {
         try {
           const res = await Http.get(
