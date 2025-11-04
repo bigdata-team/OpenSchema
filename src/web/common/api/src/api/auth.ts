@@ -8,6 +8,9 @@ export class AuthAPI {
         try {
           const res = await Http.get(
             `${address}/login`,
+	    {
+		withCredentials: true
+	    },
           );
           if (res.status !== 200) {
             throw new Error(`Response status is "${res.status}"`);
@@ -45,8 +48,9 @@ export class AuthAPI {
         try {
           const res = await Http.get(
             `${address}/refresh`,
-            {
-            }
+	    {
+		withCredentials: true
+	    },
           );
           if (res.status !== 200) {
             throw new Error(`Response status is "${res.status}"`);

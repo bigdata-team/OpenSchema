@@ -45,12 +45,12 @@ class User {
       }
       try {
         const result = await AuthAPI.refresh()
-        if (!result || !result.accessToken) {
+        if (!result || !result.access_token) {
           console.log('refresh fail')
           this.ready = true
           return false
         }
-        this.setToken(result.accessToken)
+        this.setToken(result.access_token)
         this.ready = true
         return true
       } catch (e) {
