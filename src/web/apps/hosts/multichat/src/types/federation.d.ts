@@ -53,3 +53,14 @@ declare module "chat/AppSidebarProvider" {
 declare module "auth/App";
 declare module "auth/Counter";
 declare module "auth/store";
+declare module "auth/Login";
+declare module "auth/AuthContext" {
+  export const AuthContext: React.ComponentType<React.PropsWithChildren<any>>;
+  export const AuthProvider: React.ComponentType<React.PropsWithChildren<any>>;
+  export const useAuth: () => {
+    user: any;
+    isInitializing: boolean;
+    logout: () => void;
+    // ... other properties and methods
+  };
+}

@@ -4,6 +4,8 @@ export class Config {
     return {
       API_GATEWAY_URL: '$VITE_API_GATEWAY_URL',
       TEMP_ACCESS_TOKEN: '$VITE_TEMP_ACCESS_TOKEN',
+      ELPAI_AUTH_URL: '$VITE_ELPAI_AUTH_URL',
+      ELPAI_GATEWAY_URL: '$VITE_ELPAI_GATEWAY_URL',
     };
   }
 

@@ -22,6 +22,8 @@ export default defineConfig(({ mode }) => {
     "./store": "./src/store/index.ts",
     "./App": "./src/App.tsx",
     "./Counter": "./src/components/Counter.tsx",
+    "./AuthContext": "./src/contexts/AuthContext.tsx",
+    "./Login": "./src/pages/Login.tsx",
   };
 
   ///////////////////////////////

@@ -24,7 +24,7 @@ export function AppSidebar() {
 // import { Calendar, Home, Inbox, Search, Settings } from "lucide-react"
 // import { Home, Code, Inbox } from "lucide-react"
 import { Book } from "lucide-react"
-import { Link, useLocation } from "react-router"
+import { Link, useLocation, useNavigate } from "react-router"
 import {
   SidebarProvider,
   SidebarTrigger,
@@ -86,6 +86,7 @@ export function AppSidebarProvider({ children }: { children: React.ReactNode }) 
   const [items, setItems] = useState<Array<{ title: string; url: string; icon: typeof Book | null }>>([]);
   const titlesChanged = useNotificationStore((state) => state.titlesChanged);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadTitles = async () => {
@@ -109,12 +110,20 @@ export function AppSidebarProvider({ children }: { children: React.ReactNode }) 
     loadTitles();
   }, [titlesChanged]);
 
+  function handleLabelClick() {
+    // Handle label click event here
+    console.log("SidebarGroupLabel clicked");
+    navigate('/');
+  }
+
   return (
     <SidebarProvider>
       <Sidebar>
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>Three-Body Bot</SidebarGroupLabel>
+            <SidebarGroupLabel>
+              <div className="cursor-pointer" onClick={handleLabelClick}>Three-Body Bot</div>
+            </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {items.map((item, index) => {

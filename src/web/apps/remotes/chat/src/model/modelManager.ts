@@ -1,7 +1,6 @@
 import { modelRwaData, type Model } from "./model";
 
 class ModelManager {
-    private initialized: boolean = false;
     private initPromise: Promise<void>;
     models: Model[] = [
         {
@@ -28,10 +27,6 @@ class ModelManager {
 
     constructor() {
       this.initPromise = this._initialize();
-    }
-
-     public isInitialized(): boolean {
-      return this.initialized;
     }
 
     public async waitForInitialization(): Promise<void> {

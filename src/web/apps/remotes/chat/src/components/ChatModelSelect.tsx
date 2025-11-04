@@ -17,7 +17,6 @@ export default function ChatModelSelect({
     const [selectedModel, setSelectedModel] = React.useState<string>(model.model);
 
     React.useEffect(() => {
-        console.log('TODO >>> selectedModel changed:', selectedModel);
         setSelectedModel(selectedModel);
         model.model = selectedModel;
     }, [selectedModel]);

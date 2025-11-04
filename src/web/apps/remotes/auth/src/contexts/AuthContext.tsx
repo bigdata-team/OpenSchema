@@ -4,6 +4,7 @@ import { createContext, useContext, useCallback, useState, useEffect } from 'rea
 import type { ReactNode } from 'react';
 import { getElpaiAuthService } from '../services/elpai-auth.service';
 import type { User } from '../services/elpai-auth.service';
+import { user }  from '@common/api';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -32,8 +33,8 @@ interface AuthProviderProps {
 
 export function AuthProvider({
   children,
-  gatewayUrl = import.meta.env.VITE_AUTH_GATEWAY_URL,
-  authUrl = import.meta.env.VITE_AUTH_URL,
+  gatewayUrl = import.meta.env.VITE_ELPAI_GATEWAY_URL,
+  authUrl = import.meta.env.VITE_ELPAI_AUTH_URL,
   requireAuth = false
 }: AuthProviderProps) {
   const [authState, setAuthState] = useState<AuthState>({
@@ -98,6 +99,9 @@ export function AuthProvider({
                   role: data.data.role || userInfo.role,  // DB의 role 사용
                   idp_cd: data.data.idp_cd || userInfo.idp_cd,  // DB의 idp_cd 사용 (google, github 등)
                 };
+
+                // TODO
+                user.login(data.data.access_token);
 
                 setAuthState({
                   isAuthenticated: true,
