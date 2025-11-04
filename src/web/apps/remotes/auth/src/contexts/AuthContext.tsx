@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { getElpaiAuthService } from '../services/elpai-auth.service';
 import type { User } from '../services/elpai-auth.service';
 import { user }  from '@common/api';
+import { Config } from '@common/config';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -68,7 +69,8 @@ export function AuthProvider({
 
         // Gateway를 통해 OpenSchema DB에 사용자 동기화
         try {
-            const response = await fetch(`${gatewayUrl}/api/v1/auth/signin/sso`, {
+            // TODO const response = await fetch(`${gatewayUrl}/api/v1/auth/signin/sso`, {
+            const response = await fetch(`${Config.value('API_GATEWAY_URL')}/api/v1/auth/signin/sso`, {
               credentials: 'include',
               headers: {
                 'Accept': 'application/json',
