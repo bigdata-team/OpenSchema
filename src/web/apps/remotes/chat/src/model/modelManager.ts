@@ -55,8 +55,29 @@ class ModelManager {
                 this.availableModels.push({
                     model: m.id
                 });
+                // 159
+            } else {
+                /*
+                this.availableModels.push({
+                    model: m.id
+                });
+                */
+                // 348
             }
         }
+
+        // Sort by provider first (anthropic, google, openai, etc), then by model name
+        this.availableModels.sort((a, b) => {
+            const providerA = a.model.split('/')[0];
+            const providerB = b.model.split('/')[0];
+
+            if (providerA !== providerB) {
+                return providerA.localeCompare(providerB);
+            }
+            return a.model.localeCompare(b.model);
+        });
+
+        console.log("Initialized availableModels:", this.availableModels.length);
     }
 }
 
