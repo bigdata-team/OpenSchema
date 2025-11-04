@@ -152,7 +152,6 @@ export default function ChatOne({
                                 <path d="M8 16H3v5"></path>
                             </svg>
                         </button>
-                        */}
                         <button
                             className="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-ring ring-offset-2 focus-visible:ring-offset-surface-primary disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 text-sm font-medium hover:bg-surface-tertiary hover:text-accent-foreground focus-visible:outline-none focus-visible:border-none relative size-3 rounded-md p-3"
                             type="button"
@@ -209,6 +208,7 @@ export default function ChatOne({
                                 <line x1="3" x2="10" y1="21" y2="14"></line>
                             </svg>
                         </button>
+                        */}
                     </div>
                 </div>
                 <div className="no-scrollbar relative flex w-full flex-1 flex-col overflow-x-auto transition-[max-height] duration-300 max-h-[max(50svh,350px)] overflow-y-auto border-border-faint border-t">

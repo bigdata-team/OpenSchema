@@ -102,7 +102,7 @@ class ChatService:
                         yield b
                 except Exception as e:
                     print(f"ERROR in stream_generator for model {body.get('model')}: {e}")
-                    raise
+                    # raise
                 finally:
                     tasks.add_task(self.stream_parser, chat=None, content=accumulated_text)
                     await res.aclose()
@@ -123,7 +123,7 @@ class ChatService:
             content = await res.aread()
         except Exception as e:
             print(f"ERROR in non-streaming response for model {body.get('model')}: {e}")
-            raise
+            # raise
         finally:
             tasks.add_task(self.nonstream_parser, chat=None, content=content.decode("utf-8", errors="ignore"))
             response = Response(
@@ -201,7 +201,7 @@ class ChatService:
                         yield b
                 except Exception as e:
                     print(f"ERROR in stream_generator for user {user_id}, model {body.get('model')}: {e}")
-                    raise
+                    # raise
                 finally:
                     tasks.add_task(self.stream_parser, chat=newChat, content=accumulated_text)
                     await res.aclose()
@@ -223,7 +223,7 @@ class ChatService:
             content = await res.aread()
         except Exception as e:
             print(f"ERROR in non-streaming response for user {user_id}, model {body.get('model')}: {e}")
-            raise
+            # raise
         finally:
             tasks.add_task(self.nonstream_parser, chat=newChat, content=content.decode("utf-8", errors="ignore") if content else "")
             response = Response(
