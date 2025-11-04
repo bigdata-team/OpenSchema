@@ -1,5 +1,5 @@
 import React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "react-router";
 
 /*
@@ -21,6 +21,7 @@ function ChatMultiTest() {
   let titleId = searchParams.get('id');
 
   const [ chats, setChats ] = useState<Array<typeof Chat>>([]);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const addNewChat = async (newId: string|null) => { 
     if (!titleId && newId) {
@@ -66,6 +67,13 @@ function ChatMultiTest() {
     };
   }, [titleId]);
 
+  // Auto-scroll to bottom when chats array changes
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+    }
+  }, [chats.length]);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
       <div style={{ display: 'flex', gap: '16px', padding: '10px' }}>
@@ -76,7 +84,7 @@ function ChatMultiTest() {
         ))}
       </div>
 
-      <div style={{ flex: 1, overflow: 'auto', padding: '10px' }}>
+      <div ref={scrollContainerRef} style={{ flex: 1, overflow: 'auto', padding: '10px' }}>
         {chats.map((chat, index) => (
             // console.log("Rendering ChatMulti for chat:", index, chat.user_prompt, chats.length),
             <div key={index} style={{ marginBottom: '24px' }}>
