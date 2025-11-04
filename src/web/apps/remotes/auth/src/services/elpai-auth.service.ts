@@ -20,8 +20,9 @@ class ElpaiAuthService {
   private authInstance: ElpaiAuthInstance | null = null;
   private isInitialized = false;
 
-  constructor(authUrl: string = import.meta.env.VITE_AUTH_URL) {
+  constructor(authUrl: string = import.meta.env.VITE_ELPAI_AUTH_URL) {
     this.authUrl = authUrl;
+    console.log('[ElpaiAuthService] Created with authUrl:', this.authUrl);
   }
 
   async init(): Promise<void> {
@@ -119,7 +120,7 @@ class ElpaiAuthService {
     }
 
     // 로그아웃 후 auth 페이지로 리다이렉트
-    window.location.href = '/ui/v1/auth';
+    // TODO window.location.href = '/ui/v1/auth';
   }
 
   clearCache(): void {

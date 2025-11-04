@@ -100,6 +100,9 @@ class ChatService:
                     async for b in res.aiter_bytes():
                         accumulated_text += b.decode("utf-8", errors="ignore")
                         yield b
+                except Exception as e:
+                    print(f"ERROR in stream_generator for model {body.get('model')}: {e}")
+                    raise
                 finally:
                     tasks.add_task(self.stream_parser, chat=None, content=accumulated_text)
                     await res.aclose()
@@ -116,16 +119,21 @@ class ChatService:
                 },
             )
 
-        content = await res.aread()
-        tasks.add_task(self.nonstream_parser, chat=None, content=content.decode("utf-8", errors="ignore"))
-        response = Response(
-            content=content,
-            status_code=status,
-            media_type=content_type or "application/json",
-        )
-        await res.aclose()
-        await client.aclose()
-        return response
+        try:
+            content = await res.aread()
+        except Exception as e:
+            print(f"ERROR in non-streaming response for model {body.get('model')}: {e}")
+            raise
+        finally:
+            tasks.add_task(self.nonstream_parser, chat=None, content=content.decode("utf-8", errors="ignore"))
+            response = Response(
+                content=content,
+                status_code=status,
+                media_type=content_type or "application/json",
+            )
+            await res.aclose()
+            await client.aclose()
+            return response
 
     async def conversations(self, req_body: ChatCompletionRequest, tasks: BackgroundTasks ):
         user_id = None
@@ -191,6 +199,9 @@ class ChatService:
                     async for b in res.aiter_bytes():
                         accumulated_text += b.decode("utf-8", errors="ignore")
                         yield b
+                except Exception as e:
+                    print(f"ERROR in stream_generator for user {user_id}, model {body.get('model')}: {e}")
+                    raise
                 finally:
                     tasks.add_task(self.stream_parser, chat=newChat, content=accumulated_text)
                     await res.aclose()
@@ -207,16 +218,22 @@ class ChatService:
                 },
             )
 
-        content = await res.aread()
-        tasks.add_task(self.nonstream_parser, chat=newChat, content=content.decode("utf-8", errors="ignore"))
-        response = Response(
-            content=content,
-            status_code=status,
-            media_type=content_type or "application/json",
-        )
-        await res.aclose()
-        await client.aclose()
-        return response
+        content = ""
+        try:
+            content = await res.aread()
+        except Exception as e:
+            print(f"ERROR in non-streaming response for user {user_id}, model {body.get('model')}: {e}")
+            raise
+        finally:
+            tasks.add_task(self.nonstream_parser, chat=newChat, content=content.decode("utf-8", errors="ignore") if content else "")
+            response = Response(
+                content=content,
+                status_code=status,
+                media_type=content_type or "application/json",
+            )
+            await res.aclose()
+            await client.aclose()
+            return response
 
 
     ##########################################################################

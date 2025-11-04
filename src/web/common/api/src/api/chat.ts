@@ -1,5 +1,6 @@
 import { Http } from './http'
 import { Config } from '@common/config';
+import { user } from '../user';
 
 const address = `${Config.value('API_GATEWAY_URL')}/api/v1/chat`;
 
@@ -119,7 +120,8 @@ export class ChatAPI {
     static async conversations(data: Object) {
         try {
           // Get the auth token
-          const token = Config.value("TEMP_ACCESS_TOKEN");
+          // TODO const token = Config.value("TEMP_ACCESS_TOKEN");
+          const token = user.getToken();
 
           const response = await fetch(
            `${address}/conversations`, 

@@ -32,6 +32,7 @@ async def get_me(
     request: Request,
     gateway_user: dict = Depends(get_gateway_auth_dependency(strict=True)),
     repo: UserRepository = Depends(UserRepository),
+    service: SignInService = Depends(SignInService),
 ):
     """
     현재 로그인한 사용자 정보 조회
@@ -91,4 +92,5 @@ async def get_me(
         )
         user = await repo.create(user)
 
-    return create_response(data=user)
+    return await service.signinBySSO(user.id)
+    # TODO return create_response(data=user)

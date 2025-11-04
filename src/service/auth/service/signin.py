@@ -22,6 +22,10 @@ class SignInService:
 
         return await self.issue(user.id, detail="Sign in successful.")
 
+    # TODO
+    async def signinBySSO(self, id: str):
+        return await self.issue(id, detail="Sign in successful.")
+
     @staticmethod
     async def issue(user_id: str, detail="Sign in successful."):
         access_token, refresh_token = claim_tokens(user_id)

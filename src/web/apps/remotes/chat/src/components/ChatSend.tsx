@@ -8,9 +8,13 @@ import { ChatAPI } from "@common/api";
 import type { Model } from '@/model/model';
 
 
-export async function processChat(modelChat: Chat, user_prompt: string, modelIndex: number, model: string) {
+export async function processChat(modelChat: Chat|undefined, user_prompt: string, modelIndex: number, model: string) {
 
     console.log("processChat: model:", model, modelIndex);
+    if (!modelChat) {
+        console.error(`processChat: modelChat is undefined for modelIndex ${modelIndex}`);
+        return "error";
+    }
 
     // const url = `https://api.openai.com/v1/chat/completions`
     // const url = `${Config.value("API_GATEWAY_URL")}/api/v1/chat/conversations`;
@@ -168,6 +172,10 @@ export default function ChatSend({
         if (!titleId) {
             // new chat
             const title = await chatManager.createNewTitle(userPrompt);
+            if (title == null) {
+                console.error("Failed to create new chat title for prompt:", userPrompt);
+                return;
+            }
             chatTitleId = title.id;
         } 
 
@@ -184,6 +192,17 @@ export default function ChatSend({
         }
         await chatManager.addChildByTitileId(chatTitleId, newChat);
 
+        models.map((model, index) => {
+            const modelChat = new Chat({
+                parent_id: newChat.id, 
+                index: index,
+                answer: null, 
+                user_prompt:userPrompt,
+                model_name: model.model,
+            });
+            newChat.addChild(modelChat);
+        });
+
         // Add newChat to parent component's state
         if (onNewChat) {
             onNewChat(chatTitleId);
@@ -195,6 +214,7 @@ export default function ChatSend({
 
         try {
             let promiseList = models.map((model, index) => {
+                /*
                 const modelChat = new Chat({
                     parent_id: newChat.id, 
                     index: index,
@@ -203,6 +223,8 @@ export default function ChatSend({
                     model_name: model.model,
                 });
                 newChat.addChild(modelChat);
+                */
+                const modelChat:Chat|undefined = newChat.children.find(c => c.index === index);
                 return processChat(modelChat, userPrompt, index, model.model);
             });
             await Promise.all(promiseList);

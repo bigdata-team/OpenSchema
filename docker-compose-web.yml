@@ -16,16 +16,14 @@ services:
       args:
         - SERVICE_DIR=remotes/auth
         - VITE_API_GATEWAY_URL=${VITE_API_GATEWAY_URL}
-        - VITE_AUTH_GATEWAY_URL=${VITE_AUTH_GATEWAY_URL}
         - VITE_UI_GATEWAY_URL=${VITE_UI_GATEWAY_URL}
-        - VITE_AUTH_URL=${VITE_AUTH_URL}
     env_file:
       - .env.dev
     environment:
       - VITE_API_GATEWAY_URL=${VITE_API_GATEWAY_URL}
-      - VITE_AUTH_GATEWAY_URL=${VITE_AUTH_GATEWAY_URL}
       - VITE_UI_GATEWAY_URL=${VITE_UI_GATEWAY_URL}
-      - VITE_AUTH_URL=${VITE_AUTH_URL}
+      - VITE_ELPAI_AUTH_URL=${VITE_ELPAI_AUTH_URL}
+      - VITE_ELPAI_GATEWAY_URL=${VITE_ELPAI_GATEWAY_URL}
     
 
   remote-chat-ui:
@@ -41,6 +39,8 @@ services:
     environment:
       - VITE_API_GATEWAY_URL=${VITE_API_GATEWAY_URL}
       - VITE_UI_GATEWAY_URL=${VITE_UI_GATEWAY_URL}
+      - VITE_ELPAI_AUTH_URL=${VITE_ELPAI_AUTH_URL}
+      - VITE_ELPAI_GATEWAY_URL=${VITE_ELPAI_GATEWAY_URL}
 
   host-multichat-ui:
     build:
@@ -55,6 +55,8 @@ services:
     environment:
       - VITE_API_GATEWAY_URL=${VITE_API_GATEWAY_URL}
       - VITE_UI_GATEWAY_URL=${VITE_UI_GATEWAY_URL}
+      - VITE_ELPAI_AUTH_URL=${VITE_ELPAI_AUTH_URL}
+      - VITE_ELPAI_GATEWAY_URL=${VITE_ELPAI_GATEWAY_URL}
 
 networks:
   shared-net:

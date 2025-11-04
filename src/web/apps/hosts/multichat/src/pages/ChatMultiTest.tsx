@@ -23,24 +23,21 @@ function ChatMultiTest() {
   const [ chats, setChats ] = useState<Array<typeof Chat>>([]);
 
   const addNewChat = async (newId: string|null) => { 
-    console.log("New chat added before:", titleId, chats.length);
     if (!titleId && newId) {
       // New Chat
       titleId = newId;
     }
     const temp = await chatManager.getChildrenByTitleId(titleId??"");
     setChats(() => [...temp]);
-    console.log("New chat added after :", chats.length);
   };
 
   useEffect(() => {
-    console.log("ChatMultiTest mounted");
-    console.log("URL params - titleId:", titleId)
-    // let cancelled = false;
+    console.log("ChatMultiTest mounted", titleId);
+    let cancelled = false;
     
 
     const fetchData = async () => {
-      // if (!cancelled) {
+      if (!cancelled) {
         if (!titleId) {
           // New Chat
           setChats([]);
@@ -50,25 +47,23 @@ function ChatMultiTest() {
             console.warn("Title not found in ChatManager:", titleId);
             return;
           }
-          // if (cancelled) return;
+          if (cancelled) return;
           const result = await chatManager.fetchChildrenForTitle(title.id);
-          // if (cancelled) return;
+          if (cancelled) return;
           if (result) {
           }
 
-          const chats = await chatManager.getChildrenByTitleId(titleId??"");
-          setChats(chats);
+          const temp = await chatManager.getChildrenByTitleId(titleId??"");
+          setChats(temp);
         }
-      // }
+      }
     };
     fetchData();
 
     // cleanup function when component unmounts
-    /*
     return () => {
       cancelled = true;
     };
-    */
   }, [titleId]);
 
   return (

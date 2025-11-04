@@ -36,7 +36,7 @@ export default function ChatOne({
                         setProcessing(false);
                     }
                 } else {
-                    console.log("Chat component - chat is null");
+                    console.log("Chat component - chat is null", chat.id, parentChat);
                     setChatModel(null);
                     setAnswer("");
                     setProcessing(false);

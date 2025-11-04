@@ -5,47 +5,47 @@ import { modelManager } from "./modelManager";
 
 class ChatManager {
     private titles: Array<Chat> = [];
+    // private processing: Promise<boolean> = Promise.resolve(false);
     private processing: boolean = false;
-    private initialized: boolean = false;
-    private initPromise: Promise<void>;
+    private initPromise: Promise<boolean>;
 
     constructor() {
       this.initPromise = this._initialize();
     }
 
-    public isInitialized(): boolean {
-      return this.initialized;
+    public async waitForInitialization(): Promise<boolean> {
+      return await this.initPromise;
     }
 
-    public async waitForInitialization(): Promise<void> {
-      return this.initPromise;
-    }
-
-    private async _initialize() {
+    private async _initialize(): Promise<boolean> {
         console.log("ChatManager initializing...");
         // for initialize of modelManager
         modelManager;
        
-
         const list = await ChatAPI.listTitle();
-        for (const t of list) {
-            // console.log("Title:", t.id, t.title);
-            const title = new Chat(t);
-            this.titles.push(title);
+        if (list) {
+            for (const t of list) {
+                // console.log("Title:", t.id, t.title);
+                const title = new Chat(t);
+                this.titles.push(title);
+            }
         }
-        this.initialized = true;
         console.log("ChatManager initialized with titles:", this.titles);
         useNotificationStore.getState().notifyTitlesChanged();
+        return true;
     }
 
-    async createNewTitle(titleText: string): Promise<Chat> {
+    async createNewTitle(titleText: string): Promise<Chat | null> {
         await this.waitForInitialization();
 
         const newTitleData = await ChatAPI.createTitle(titleText);
-        const newTitle = new Chat(newTitleData);
-        this.titles.unshift(newTitle);
-        useNotificationStore.getState().notifyTitlesChanged();
-        return newTitle;
+        if (newTitleData) {
+            const newTitle = new Chat(newTitleData);
+            this.titles.unshift(newTitle);
+            useNotificationStore.getState().notifyTitlesChanged();
+            return newTitle;
+        }
+        return null;
     }
 
     async getTitles() {
@@ -72,6 +72,7 @@ class ChatManager {
             return null;
         }
 
+        const oldeTitleChildren = title.children;
         title.children = []; // clear existing children
 
         const titleWithChildren = await ChatAPI.getChat(title.id);
@@ -79,9 +80,13 @@ class ChatManager {
         if (!titleWithChildren || !titleWithChildren.children) return;
         // console.log("children:", titleWithChildren.children.length);
         for (const child1 of titleWithChildren.children) {
-            // console.log(" -- titleWithChildren:", child1.id, child1.user_prompt);
-            const chat = new Chat(child1);
-            title.addChild(chat);
+            // console.log(" -- titleWithChildren:", child1.id, child1.children.length, child1.user_prompt);
+            const oldChat = oldeTitleChildren.find(c => c.id === child1.id);
+            const newChat = new Chat(child1);
+            if (oldChat && oldChat.children.length > 0 && newChat.children.length === 0) {
+                newChat.children = oldChat.children;
+            }
+            title.addChild(newChat);
         }
 
         console.log("Finished fetching children for title:", title);
@@ -166,9 +171,9 @@ class ChatManager {
         }
 
         const chat = title.children.find(c => c.id === chatId);
-        // console.log('getChatByIndex: child1:', child1.id, 'child1.children.length:', child1.children.length, 'modelIndex:', modelIndex);
+        // console.log('getChatById: child1:', child1.id, 'child1.children.length:', child1.children.length, 'modelIndex:', modelIndex);
         if (!chat) {
-            console.log('getChatByIndex: modelIndex out of bounds, returning child1 instead');
+            console.log('getChatById: modelIndex out of bounds, returning child1 instead');
             // If there are no children, return the parent conversation itself
             // return child1;
             return null;

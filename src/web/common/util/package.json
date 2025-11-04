@@ -1,5 +1,5 @@
 {
-  "name": "@common/api",
+  "name": "@common/util",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -15,10 +15,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@common/config": "workspace:*",
-    "@common/util": "workspace:*",
-    "axios": "^1.12.2",
-    "jwt-decode": "^4.0.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },

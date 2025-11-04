@@ -15,11 +15,10 @@ export default function Layout() {
 }
 */
 
-import React from "react";
-import { Outlet } from 'react-router';
+import React, { useEffect } from "react";
+import { Outlet, useNavigate } from 'react-router';
 // import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 
-// TODO import { AppSidebar } from "./app-sidebar"
 // import { AppSidebar } from "./AppSidebar";
 // when export default
 // const AppSidebar = React.lazy(() => import('chat/AppSidebar')); // when export default
@@ -38,8 +37,19 @@ const SidebarTrigger = React.lazy(() =>
 const AppSidebarProvider = React.lazy(() =>
   import('chat/AppSidebarProvider').then(module => ({ default: module.AppSidebarProvider }))
 );
+import { useAuth } from 'auth/AuthContext';
 
 export default function Layout() {
+  const { user, isInitializing } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    console.log('[Layout] Current user:', user);
+    if (!isInitializing && !user) {
+      navigate('/login');
+    }
+  }, [user, isInitializing, navigate]);
+
   return (
     /*
     <SidebarProvider
@@ -62,10 +72,12 @@ export default function Layout() {
       </SidebarProvider>
     </React.Suspense>
     */
-   <AppSidebarProvider>
-      <div style={{ padding: "0rem" }}>
-        <Outlet />
-      </div>
-    </AppSidebarProvider>
+    // <React.Suspense fallback={<div>Loading...</div>}>
+      <AppSidebarProvider>
+        <div style={{ padding: "0rem" }}>
+          <Outlet />
+        </div>
+      </AppSidebarProvider>
+    // </React.Suspense>
   )
 }

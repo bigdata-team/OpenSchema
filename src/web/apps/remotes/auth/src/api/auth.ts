@@ -15,7 +15,7 @@ import type {
 	SignUpResponsePayload,
 } from "@/types/api";
 
-const GATEWAY_URL = import.meta.env.VITE_AUTH_GATEWAY_URL ?? "";
+const GATEWAY_URL = import.meta.env.VITE_ELPAI_GATEWAY_URL ?? "";
 const AUTH_BASE_PATH = "/api/v1/auth";
 const DEFAULT_HEADERS = {
 	"Content-Type": "application/json",
