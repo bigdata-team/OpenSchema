@@ -2,7 +2,7 @@
 import { jwtDecode, type JwtPayload } from 'jwt-decode'
 import { AuthAPI } from './api/auth'
 import { LocalStorage } from '@common/util';
-// import { Config } from '@common/config';
+import { Config } from '@common/config';
 
 class User {
     uID: string | undefined = undefined;
@@ -13,7 +13,9 @@ class User {
       // TODO temp code
       this.accessToken = LocalStorage.getItem('accessToken')
       // TODO temp code
-      // this.accessToken = Config.value("TEMP_ACCESS_TOKEN");
+      if (import.meta.env.DEV) {
+        this.accessToken = Config.value("TEMP_ACCESS_TOKEN");
+      }
     } 
 
     isTokenValid() {
