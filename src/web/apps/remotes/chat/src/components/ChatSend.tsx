@@ -264,7 +264,7 @@ export default function ChatSend({
                     className="bg-surface-primary box-border w-full flex-none resize-none focus:outline-none active:outline-none max-h-[40vh] p-1 md:p-3"
                     name="message"
                     autoComplete="off"
-                    placeholder="Ask followup…"
+                    placeholder="Ask anything..."
                     data-sentry-element="AutoResizeTextarea"
                     data-sentry-source-file="evaluation-form.tsx"
                     style={{ height: "48px !important" }}
@@ -273,6 +273,7 @@ export default function ChatSend({
                 />
                 <div className="flex justify-between gap-4">
                 <div className="mr-1 flex h-8 flex-none gap-2">
+                    {/*
                     <div
                     className="flex items-center gap-2"
                     data-sentry-component="SelectChatModality"
@@ -329,6 +330,7 @@ export default function ChatSend({
                         </svg>
                     </button>
                     </div>
+                    */}
                 </div>
                 <div className="flex items-center gap-2">
                     <div
@@ -336,6 +338,7 @@ export default function ChatSend({
                     data-sentry-element="TooltipTrigger"
                     data-sentry-source-file="public-notice-button.tsx"
                     >
+                    {/*
                     <button
                         type="button"
                         className="text-interactive-normal hover:text-interactive-active focus-visible:text-interactive-active flex cursor-pointer select-none items-center justify-center transition-colors duration-200 rounded-md p-2"
@@ -377,6 +380,7 @@ export default function ChatSend({
                         />
                         </svg>
                     </button>
+                    */}
                     </div>
                     <button
                     className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ring-offset-2 focus-visible:ring-offset-surface-primary disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 h-8 w-8 active:bg-interactive-cta-active bg-header-primary hover:bg-header-primary/90 text-interactive-on-cta cursor-pointer"
