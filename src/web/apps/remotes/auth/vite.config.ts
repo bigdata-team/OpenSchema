@@ -24,6 +24,7 @@ export default defineConfig(({ mode }) => {
     "./Counter": "./src/components/Counter.tsx",
     "./AuthContext": "./src/contexts/AuthContext.tsx",
     "./Login": "./src/pages/Login.tsx",
+    "./ProtectedRoute": "./src/components/ProtectedRoute.tsx",
   };
 
   ///////////////////////////////

@@ -64,3 +64,4 @@ declare module "auth/AuthContext" {
     // ... other properties and methods
   };
 }
+declare module "auth/ProtectedRoute";
