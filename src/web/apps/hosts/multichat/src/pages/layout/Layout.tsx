@@ -46,11 +46,7 @@ export default function Layout() {
   useEffect(() => {
     console.log('[Layout] Current user:', user);
     if (!isInitializing && !user) {
-      if (import.meta.env.DEV) {
-        // do nothing in dev mode
-      } else {
-        navigate('/login');
-      }
+      navigate('/login');
     }
   }, [user, isInitializing, navigate]);
 

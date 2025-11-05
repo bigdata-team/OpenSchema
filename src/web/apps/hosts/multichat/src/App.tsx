@@ -15,6 +15,8 @@ import React from 'react';
 const AuthProvider = React.lazy(() =>
   import('auth/AuthContext').then(module => ({ default: module.AuthProvider }))
 );
+const ProtectedRoute = React.lazy(() => import('auth/ProtectedRoute'));
+
 
 function App() {
   return (
@@ -33,8 +35,10 @@ function App() {
         <Route path="/" element={<Layout />} >
           <Route path="home" element={<Home />} />
           <Route path="login" element={<Login />} />
-          <Route path="chat" element={<ChatMultiTest />} />
           <Route path="about" element={<About />} />
+          <Route element={<ProtectedRoute redirectTo="/login" />}>
+            <Route path="chat" element={<ChatMultiTest />} />
+          </Route>
         </Route>
       </Routes>
     </AuthProvider>

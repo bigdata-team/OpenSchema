@@ -137,6 +137,20 @@ export function AuthProvider({
       // 인증되지 않은 경우
       console.log('[AuthProvider] User not authenticated');
 
+      // TODO temp code
+      if (import.meta.env.DEV) {
+        console.log('[AuthProvider] User not authenticated but in DEV mode, skipping error');
+        // TODO
+        user.login(Config.value("TEMP_ACCESS_TOKEN"));
+        setAuthState({
+          isAuthenticated: true,
+          isInitializing: false,
+          user: { id: 'TODO-id', name: 'TODO User', email: 'TODO@example.com' } as User,
+          authError: null,
+        });
+        return true;
+      }
+
       // requireAuth가 true이고 페이지 로드시 인증 실패하면 로그인 페이지로 리다이렉트
       if (requireAuth && isPageLoad && typeof window !== 'undefined') {
         authService.login(window.location.href);

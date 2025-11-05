@@ -10,6 +10,7 @@ from common.config import OPENROUTER_API_KEY, OPENROUTER_BASE_URL, SERVICE_ID
 from model.sql.chat import Chat
 from model.http.chat import ChatCompletionRequest, ChatResponse
 from repository.sql.chat import ChatRepository
+from common.util.log.log2 import logger
 
 
 class ChatService:
@@ -197,6 +198,7 @@ class ChatService:
                 accumulated_text = ""
                 try:
                     async for b in res.aiter_bytes():
+                        logger.info(f"TODO >>> receive {b}")
                         accumulated_text += b.decode("utf-8", errors="ignore")
                         yield b
                 except Exception as e:
