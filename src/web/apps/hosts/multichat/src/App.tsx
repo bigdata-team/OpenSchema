@@ -8,7 +8,7 @@ import ChatMultiTest from '@/pages/ChatMultiTest';
 import Login from '@/pages/Login';
 import { Config } from '@common/config';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 // const AuthApp = React.lazy(() => import('auth/App'));
 // const ChatMultiTest = React.lazy(() => import('chat/ChatMultiTest'));
 // const Layout = React.lazy(() => import('chat/Layout'));
@@ -16,9 +16,15 @@ const AuthProvider = React.lazy(() =>
   import('auth/AuthContext').then(module => ({ default: module.AuthProvider }))
 );
 const ProtectedRoute = React.lazy(() => import('auth/ProtectedRoute'));
+import { modelManager } from 'chat/model'
 
 
 function App() {
+  useEffect(() => {
+    document.title = "Three-Body Bot";
+    modelManager.initialize(3);
+  }, []);
+
   return (
     <AuthProvider requireAuth={false} gatewayUrl={Config.value("ELPAI_GATEWAY_URL")} authUrl={Config.value("ELPAI_AUTH_URL")}>
       <Routes>

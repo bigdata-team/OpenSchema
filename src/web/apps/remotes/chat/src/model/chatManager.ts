@@ -72,18 +72,18 @@ class ChatManager {
             return null;
         }
 
-        const oldeTitleChildren = title.children;
-        title.children = []; // clear existing children
-
         const titleWithChildren = await ChatAPI.getChat(title.id);
         // console.log("Fetched chat for title:", title.id, titleWithChildren);
         if (!titleWithChildren || !titleWithChildren.children) return;
-        // console.log("children:", titleWithChildren.children.length);
+        // console.log(" - children:", titleWithChildren.children.length);
+
+        const oldeTitleChildren = title.children;
+        title.children = []; // clear existing children
         for (const child1 of titleWithChildren.children) {
-            // console.log(" -- titleWithChildren:", child1.id, child1.children.length, child1.user_prompt);
             const oldChat = oldeTitleChildren.find(c => c.id === child1.id);
+            // console.log(" -- titleWithChildren:", child1.id, child1.children.length, oldChat?.children.length);
             const newChat = new Chat(child1);
-            if (oldChat && oldChat.children.length > 0 && newChat.children.length === 0) {
+            if (oldChat && oldChat.children.length > 0 && newChat.children.length < oldChat.children.length) {
                 newChat.children = oldChat.children;
             }
             title.addChild(newChat);
@@ -173,9 +173,7 @@ class ChatManager {
         const chat = title.children.find(c => c.id === chatId);
         // console.log('getChatById: child1:', child1.id, 'child1.children.length:', child1.children.length, 'modelIndex:', modelIndex);
         if (!chat) {
-            console.log('getChatById: modelIndex out of bounds, returning child1 instead');
-            // If there are no children, return the parent conversation itself
-            // return child1;
+            console.log('getChatById: modelIndex out of bounds, returning null', titleId, chatId);
             return null;
         }
 

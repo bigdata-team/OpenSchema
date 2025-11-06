@@ -1,44 +1,45 @@
 import { modelRwaData, type Model } from "./model";
 
+const defaultModels: Model[] = [
+        {
+            model: "openai/gpt-5",
+        },
+        {
+            model: "google/gemini-2.5-flash",
+        },
+        {
+            model: "anthropic/claude-sonnet-4.5",
+        }
+];
 class ModelManager {
     private initPromise: Promise<void>;
-    models: Model[] = [
-        {
-            model: "openai/gpt-5",
-        },
-        {
-            model: "google/gemini-2.5-flash",
-        },
-        {
-            model: "anthropic/claude-sonnet-4.5",
-        }
-    ];
-    availableModels: Model[] = [
-        {
-            model: "openai/gpt-5",
-        },
-        {
-            model: "google/gemini-2.5-flash",
-        },
-        {
-            model: "anthropic/claude-sonnet-4.5",
-        }
-    ];
+    models: Model[] = defaultModels.slice();
+    availableModels: Model[] = defaultModels.slice();
 
     constructor() {
-      this.initPromise = this._initialize();
-    }
-
-    public async waitForInitialization(): Promise<void> {
-      return this.initPromise;
-    }
-
-    private async _initialize() {
         /*
         const models = fetch('https://chat.elpai.org/v1/models');
         console.log("Fetched models:", models);
         */
         this.initModels();
+        this.initPromise = this.initialize();
+    }
+
+    public async waitForInitialization(): Promise<void> {
+        return this.initPromise;
+    }
+
+    public async initialize(modelCount: number = 1) {
+        if (modelCount !== null) {
+            this.models.length = 0;
+            for (let i = 0; i < modelCount && i < this.availableModels.length; i++) {
+                if (i < defaultModels.length) {
+                    this.models.push(defaultModels[i]);
+                } else {
+                    this.models.push(this.availableModels[i]);
+                }
+            }
+        }
     }
 
     initModels() {
